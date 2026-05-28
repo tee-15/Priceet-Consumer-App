@@ -6,6 +6,14 @@ class AppTextStyles {
   AppTextStyles._();
 
   // ── Splash ──────────────────────────────────────────────────────────────
+  static const TextStyle splashWordmark = TextStyle(
+    fontFamily: 'Outfit',
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    height: 1.5, // 22.5 / 15 scaled
+    color: Color(0xCCFFFFFF), // white 80%
+  );
+
   static const TextStyle tagline = TextStyle(
     fontFamily: 'Outfit',
     fontSize: 15,

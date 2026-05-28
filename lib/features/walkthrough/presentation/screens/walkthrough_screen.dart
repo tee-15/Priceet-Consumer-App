@@ -1,22 +1,70 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../widgets/price_comparison_illustration.dart';
+import '../widgets/qr_scan_illustration.dart';
+import '../widgets/savings_illustration.dart';
 
-/// Data model for a single walkthrough slide.
+// ── Slide data model ───────────────────────────────────────────────────────────
+
 class _WalkthroughSlide {
   const _WalkthroughSlide({
-    required this.illustration,
+    required this.buildIllustration,
     required this.heading,
     required this.body,
+    required this.gradientColors,
   });
 
-  final Widget illustration;
+  /// Builder so each slide gets a fresh widget instance — required for
+  /// StatefulWidget illustrations (e.g. QrScanIllustration with animations).
+  final Widget Function() buildIllustration;
   final String heading;
   final String body;
+  final List<Color> gradientColors;
 }
+
+// ── Slide definitions ──────────────────────────────────────────────────────────
+
+final List<_WalkthroughSlide> _slides = [
+  _WalkthroughSlide(
+    buildIllustration: () => const PriceComparisonIllustration(),
+    heading: 'Compare Prices Instantly',
+    body:
+        'See live prices from every nearby store in one glance — Priceet always finds the best deal for you.',
+    gradientColors: const [
+      Color(0xFF000D2E),
+      Color(0xFF001858),
+      Color(0xFF002D8A),
+    ],
+  ),
+  _WalkthroughSlide(
+    buildIllustration: () => QrScanIllustration(),
+    heading: 'Scan & Pay Anywhere',
+    body:
+        'Shop at partner stores cashlessly. Scan once, pay instantly — no cards, no cash, no stress.',
+    gradientColors: const [
+      Color(0xFF021F1C),
+      Color(0xFF0A3D38),
+      Color(0xFF0F5E58),
+    ],
+  ),
+  _WalkthroughSlide(
+    buildIllustration: () => SavingsIllustration(),
+    heading: 'Watch Savings Grow',
+    body:
+        'Track every naira saved with beautiful insights. Earn cashback rewards and build smarter habits.',
+    gradientColors: const [
+      Color(0xFF1F0000), // rgb(31,0,0)
+      Color(0xFF5A0000), // rgb(90,0,0)
+      Color(0xFF8C0000), // rgb(140,0,0)
+    ],
+  ),
+];
+
+// ── Screen ─────────────────────────────────────────────────────────────────────
 
 class WalkthroughScreen extends StatefulWidget {
   const WalkthroughScreen({super.key});
@@ -26,29 +74,11 @@ class WalkthroughScreen extends StatefulWidget {
 }
 
 class _WalkthroughScreenState extends State<WalkthroughScreen> {
-  final PageController _pageController = PageController();
   int _currentPage = 0;
+  Timer? _timer;
 
-  static const List<_WalkthroughSlide> _slides = [
-    _WalkthroughSlide(
-      illustration: PriceComparisonIllustration(),
-      heading: 'Compare Prices Instantly',
-      body:
-          'See live prices from every nearby store in one glance — Priceet always finds the best deal for you.',
-    ),
-    _WalkthroughSlide(
-      illustration: PriceComparisonIllustration(),
-      heading: 'Save More Every Day',
-      body:
-          'Track price drops and get notified when your favourite products go on sale.',
-    ),
-    _WalkthroughSlide(
-      illustration: PriceComparisonIllustration(),
-      heading: 'Shop Smarter, Not Harder',
-      body:
-          'Build your shopping list and let Priceet find the cheapest basket across all stores.',
-    ),
-  ];
+  /// How long each slide stays visible before auto-advancing.
+  static const _slideDuration = Duration(seconds: 4);
 
   @override
   void initState() {
@@ -60,65 +90,85 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
         statusBarBrightness: Brightness.dark,
       ),
     );
+    _startTimer();
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
-  void _onPageChanged(int index) {
-    setState(() => _currentPage = index);
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(_slideDuration, (_) {
+      if (!mounted) return;
+      setState(() {
+        _currentPage = (_currentPage + 1) % _slides.length;
+      });
+    });
   }
 
+  /// Stop the auto-advance — called when the user taps an action button.
+  void _stopTimer() => _timer?.cancel();
+
   void _skip() {
+    _stopTimer();
     // TODO: navigate to sign-in / home
   }
 
   void _signIn() {
+    _stopTimer();
     // TODO: navigate to sign-in screen
   }
 
   void _getStarted() {
-    // TODO: navigate to registration screen
+    _stopTimer();
+    Navigator.of(context).pushNamed('/signup');
   }
 
   @override
   Widget build(BuildContext context) {
+    final slide = _slides[_currentPage];
+
     return Scaffold(
-      backgroundColor: AppColors.gradientStart,
+      backgroundColor: slide.gradientColors[0],
       body: Stack(
         children: [
-          // ── Background gradient ────────────────────────────────────────
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment(-0.72, -0.70),
-                  end: Alignment(0.72, 0.70),
-                  stops: [0.0849, 0.4585, 0.9151],
-                  colors: [
-                    AppColors.gradientStart,
-                    AppColors.gradientMid,
-                    AppColors.gradientEnd,
-                  ],
-                ),
+          // ── Animated background gradient ───────────────────────────────
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: const Alignment(-0.72, -0.70),
+                end: const Alignment(0.72, 0.70),
+                stops: const [0.0849, 0.4585, 0.9151],
+                colors: slide.gradientColors,
               ),
             ),
           ),
 
-          // ── Page content ───────────────────────────────────────────────
-          PageView.builder(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            itemCount: _slides.length,
-            itemBuilder: (context, index) {
-              return _SlideContent(slide: _slides[index]);
-            },
+          // ── Illustration (cross-fades on slide change) ─────────────────
+          Positioned(
+            top: 112,
+            bottom: 344,
+            left: 0,
+            right: 0,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              switchInCurve: Curves.easeIn,
+              switchOutCurve: Curves.easeOut,
+              child: KeyedSubtree(
+                // Unique key per page index forces a full widget remount,
+                // which is essential for StatefulWidget illustrations.
+                key: ValueKey<int>(_currentPage),
+                child: Center(child: slide.buildIllustration()),
+              ),
+            ),
           ),
 
-          // ── Top nav bar (logo + skip) ──────────────────────────────────
+          // ── Top nav bar ────────────────────────────────────────────────
           Positioned(
             top: 0,
             left: 0,
@@ -126,7 +176,7 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
             child: _TopNavBar(onSkip: _skip),
           ),
 
-          // ── Bottom CTA area ────────────────────────────────────────────
+          // ── Bottom content ─────────────────────────────────────────────
           Positioned(
             bottom: 0,
             left: 0,
@@ -134,8 +184,8 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
             child: _BottomSection(
               currentPage: _currentPage,
               totalPages: _slides.length,
-              heading: _slides[_currentPage].heading,
-              body: _slides[_currentPage].body,
+              heading: slide.heading,
+              body: slide.body,
               onSignIn: _signIn,
               onGetStarted: _getStarted,
             ),
@@ -146,25 +196,8 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
   }
 }
 
-// ── Slide content (illustration only — text is in the bottom section) ─────────
-class _SlideContent extends StatelessWidget {
-  const _SlideContent({required this.slide});
-
-  final _WalkthroughSlide slide;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 112), // below nav bar
-      child: Align(
-        alignment: const Alignment(0, -0.35),
-        child: slide.illustration,
-      ),
-    );
-  }
-}
-
 // ── Top navigation bar ─────────────────────────────────────────────────────────
+
 class _TopNavBar extends StatelessWidget {
   const _TopNavBar({required this.onSkip});
 
@@ -180,7 +213,6 @@ class _TopNavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Logo + wordmark
             Row(
               children: [
                 Container(
@@ -203,8 +235,6 @@ class _TopNavBar extends StatelessWidget {
                 Text('Priceet', style: AppTextStyles.walkthroughAppName),
               ],
             ),
-
-            // Skip button
             GestureDetector(
               onTap: onSkip,
               child: Container(
@@ -228,7 +258,8 @@ class _TopNavBar extends StatelessWidget {
   }
 }
 
-// ── Bottom section: dots + heading + body + CTA buttons ───────────────────────
+// ── Bottom section ─────────────────────────────────────────────────────────────
+
 class _BottomSection extends StatelessWidget {
   const _BottomSection({
     required this.currentPage,
@@ -255,28 +286,34 @@ class _BottomSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Page indicator dots
           _PageIndicator(currentIndex: currentPage, total: totalPages),
           const SizedBox(height: 36),
 
-          // Heading
-          Text(
-            heading,
-            style: AppTextStyles.walkthroughHeading,
+          // Heading cross-fade
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            child: Align(
+              key: ValueKey(heading),
+              alignment: Alignment.centerLeft,
+              child: Text(heading, style: AppTextStyles.walkthroughHeading),
+            ),
           ),
           const SizedBox(height: 14),
 
-          // Body
-          SizedBox(
-            width: 299,
-            child: Text(
-              body,
-              style: AppTextStyles.walkthroughBody,
+          // Body cross-fade
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            child: Align(
+              key: ValueKey(body),
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                width: 299,
+                child: Text(body, style: AppTextStyles.walkthroughBody),
+              ),
             ),
           ),
           const SizedBox(height: 36),
 
-          // CTA buttons
           Row(
             children: [
               Expanded(
@@ -302,7 +339,8 @@ class _BottomSection extends StatelessWidget {
   }
 }
 
-// ── Animated page indicator ────────────────────────────────────────────────────
+// ── Animated page indicator dots ──────────────────────────────────────────────
+
 class _PageIndicator extends StatelessWidget {
   const _PageIndicator({required this.currentIndex, required this.total});
 
@@ -332,6 +370,7 @@ class _PageIndicator extends StatelessWidget {
 }
 
 // ── CTA button ─────────────────────────────────────────────────────────────────
+
 class _WalkthroughButton extends StatelessWidget {
   const _WalkthroughButton({
     required this.label,

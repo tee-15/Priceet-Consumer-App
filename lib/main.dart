@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'features/splash/presentation/screens/splash_screen.dart';
 import 'features/walkthrough/presentation/screens/walkthrough_screen.dart';
+import 'features/auth/presentation/screens/sign_up_screen.dart';
+import 'features/auth/presentation/screens/verify_screen.dart';
+import 'features/auth/presentation/screens/add_address_screen.dart';
 
 void main() {
   runApp(const PriceetApp());
@@ -26,6 +29,9 @@ class PriceetApp extends StatelessWidget {
       home: const SplashScreen(),
       routes: {
         '/walkthrough': (_) => const WalkthroughScreen(),
+        '/signup': (_) => const SignUpScreen(),
+        '/verify': (_) => const VerifyScreen(),
+        '/add-address': (_) => const AddAddressScreen(),
       },
     );
   }

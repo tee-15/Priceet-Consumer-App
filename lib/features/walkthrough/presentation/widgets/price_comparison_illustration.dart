@@ -80,13 +80,6 @@ class PriceComparisonIllustration extends StatelessWidget {
               priceStyle: AppTextStyles.cardPriceDark,
             ),
           ),
-
-          // ── Page indicator dots ────────────────────────────────────────
-          Positioned(
-            bottom: 0,
-            left: 107,
-            child: _PageDots(currentIndex: 0),
-          ),
         ],
       ),
     );
@@ -159,35 +152,6 @@ class _PriceCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-/// Three-dot page indicator — active dot is a wide pill, inactive are circles.
-class _PageDots extends StatelessWidget {
-  const _PageDots({required this.currentIndex});
-
-  final int currentIndex;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (i) {
-        final isActive = i == currentIndex;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.only(right: 8),
-          width: isActive ? 20 : 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: isActive
-                ? Colors.white
-                : const Color(0xFFC4C4C4),
-            borderRadius: BorderRadius.circular(4),
-          ),
-        );
-      }),
     );
   }
 }

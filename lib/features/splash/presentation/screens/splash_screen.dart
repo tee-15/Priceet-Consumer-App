@@ -21,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    // Make the status bar transparent so the gradient shows through
+
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _spinController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 1000),
     )..repeat();
 
     // Navigate to walkthrough after 3 seconds
@@ -60,13 +60,14 @@ class _SplashScreenState extends State<SplashScreen>
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment(-0.72, -0.70), // ~143° angle
+                  // 143° angle
+                  begin: Alignment(-0.72, -0.70),
                   end: Alignment(0.72, 0.70),
                   stops: [0.0849, 0.4585, 0.9151],
                   colors: [
-                    AppColors.gradientStart,
-                    AppColors.gradientMid,
-                    AppColors.gradientEnd,
+                    AppColors.gradientStart, // #000D2E
+                    AppColors.gradientMid,   // #001858
+                    AppColors.gradientEnd,   // #002D8A
                   ],
                 ),
               ),
@@ -74,17 +75,19 @@ class _SplashScreenState extends State<SplashScreen>
           ),
 
           // ── Top-left blue radial glow ────────────────────────────────────
+          // Figma: left=-57.87, top=-182.19, size=343.565
           Positioned(
             left: -57.87,
             top: -182.19,
             child: _RadialGlow(
               size: 343.565,
               centerColor: const Color(0x731E50FF), // rgba(30,80,255,0.45)
-              midColor: const Color(0x390F2880),   // rgba(15,40,128,0.225)
+              midColor: const Color(0x390F2880),    // rgba(15,40,128,0.225)
             ),
           ),
 
           // ── Bottom-right red radial glow ─────────────────────────────────
+          // Figma: left=212.26, top=380.53, size=269.57
           Positioned(
             left: 212.26,
             top: 380.53,
@@ -95,29 +98,56 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // ── Logo ─────────────────────────────────────────────────────────
+          // ── Centre logo block ────────────────────────────────────────────
+          // Figma: centred horizontally, top=276
+          // White rounded box (83×83, radius 24.4) + "Priceet" wordmark below
           Positioned(
-            top: 303,
+            top: 276,
             left: 0,
             right: 0,
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/images/priceet_logo.svg',
-                width: 107.427,
-                height: 78,
-                fit: BoxFit.contain,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // White rounded container with logo icon inside
+                Container(
+                  width: 83,
+                  height: 83,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24.4),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      width: 2.44,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 2.44,
+                  ),
+                  child: Image.asset(
+                    'assets/images/priceet_logo_small.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 11),
+                // "Priceet" wordmark
+                Text(
+                  'Priceet',
+                  style: AppTextStyles.splashWordmark,
+                ),
+              ],
             ),
           ),
 
           // ── Tagline ──────────────────────────────────────────────────────
+          // Figma: top=435, centred, width=275
           Positioned(
             top: 435,
             left: 0,
             right: 0,
             child: Center(
               child: SizedBox(
-                width: 277,
+                width: 275,
                 child: Text(
                   'Priceet always finds the best deal for you.',
                   style: AppTextStyles.tagline,
@@ -128,9 +158,9 @@ class _SplashScreenState extends State<SplashScreen>
           ),
 
           // ── Spinning loader ──────────────────────────────────────────────
-          // Figma: top=752 on 812px screen → bottom = 812 - 752 - 42.426 = 17.574
+          // Figma: top=752, centred, size=42.426
           Positioned(
-            bottom: 18,
+            top: 752,
             left: 0,
             right: 0,
             child: Center(
@@ -158,7 +188,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-/// A soft radial gradient circle used for the ambient glow effects.
+/// Soft radial gradient circle for ambient glow effects.
 class _RadialGlow extends StatelessWidget {
   const _RadialGlow({
     required this.size,
@@ -179,11 +209,7 @@ class _RadialGlow extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [
-              centerColor,
-              midColor,
-              Colors.transparent,
-            ],
+            colors: [centerColor, midColor, Colors.transparent],
             stops: const [0.0, 0.35, 0.70],
           ),
         ),

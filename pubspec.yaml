@@ -61,6 +61,14 @@ flutter:
     - assets/images/loading_indicator.svg
     - assets/images/priceet_logo_small.png
     - assets/images/walkthrough_dots.svg
+    - assets/images/walkthrough_dots_2.svg
+    - assets/images/icon_person.svg
+    - assets/images/icon_email.svg
+    - assets/images/icon_phone.svg
+    - assets/images/icon_lock.svg
+    - assets/images/icon_priceet_logo_signup.svg
+    - assets/images/icon_home_address.svg
+    - assets/images/icon_location_pin.svg
 
   fonts:
     - family: Outfit
