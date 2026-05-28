@@ -91,9 +91,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,
-                      child: SvgPicture.asset(
-                        'assets/images/icon_pin.svg',
-                        width: 32, height: 32,
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        color: Color(0xFF002367),
+                        size: 32,
                       ),
                     ),
                     const SizedBox(height: 10),

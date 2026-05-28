@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class AccountCreatedScreen extends StatelessWidget {
   const AccountCreatedScreen({super.key});
@@ -41,10 +40,10 @@ class AccountCreatedScreen extends StatelessWidget {
                   ],
                 ),
                 alignment: Alignment.center,
-                child: SvgPicture.asset(
-                  'assets/images/icon_check.svg',
-                  width: 48,
-                  height: 48,
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: Colors.white,
+                  size: 48,
                 ),
               ),
               const SizedBox(height: 24),

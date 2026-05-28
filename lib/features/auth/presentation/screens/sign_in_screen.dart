@@ -62,7 +62,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   void _onSignIn() {
     if (!_formKey.currentState!.validate()) return;
-    // TODO: call auth service
+    Navigator.of(context).pushReplacementNamed('/home');
   }
 
   void _onForgotPassword() {

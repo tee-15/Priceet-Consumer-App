@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class CreatePinScreen extends StatefulWidget {
   const CreatePinScreen({super.key});
@@ -133,9 +132,10 @@ class _CreatePinScreenState extends State<CreatePinScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,
-                      child: SvgPicture.asset(
-                        'assets/images/icon_pin.svg',
-                        width: 32, height: 32,
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        color: Color(0xFF002367),
+                        size: 32,
                       ),
                     ),
                     const SizedBox(height: 10),

@@ -9,6 +9,7 @@ import 'features/auth/presentation/screens/check_email_screen.dart';
 import 'features/auth/presentation/screens/verify_screen.dart';
 import 'features/auth/presentation/screens/add_address_screen.dart';
 import 'features/auth/presentation/screens/create_pin_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
 import 'features/auth/presentation/screens/account_created_screen.dart';
 
 void main() {
@@ -45,6 +46,7 @@ class PriceetApp extends StatelessWidget {
         '/add-address': (_) => const AddAddressScreen(),
         '/create-pin': (_) => const CreatePinScreen(),
         '/account-created': (_) => const AccountCreatedScreen(),
+        '/home': (_) => const HomeScreen(),
       },
     );
   }
