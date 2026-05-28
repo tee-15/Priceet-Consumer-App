@@ -103,7 +103,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _onSignIn() {
-    // TODO: navigate to sign in screen
+    Navigator.of(context).pushNamed('/signin');
   }
 
   @override

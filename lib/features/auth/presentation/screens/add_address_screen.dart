@@ -38,7 +38,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   void _onContinue() {
     if (!_formKey.currentState!.validate()) return;
-    // TODO: save address and navigate to home
+    Navigator.of(context).pushNamed('/create-pin');
   }
 
   @override

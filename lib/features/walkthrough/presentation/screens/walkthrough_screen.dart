@@ -119,7 +119,7 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
 
   void _signIn() {
     _stopTimer();
-    // TODO: navigate to sign-in screen
+    Navigator.of(context).pushNamed('/signin');
   }
 
   void _getStarted() {
