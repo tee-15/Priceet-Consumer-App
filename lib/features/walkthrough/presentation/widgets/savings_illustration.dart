@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Savings dashboard illustration for walkthrough slide 3 — "Watch Savings Grow".
-///
-/// Two layered cards:
-///  • Top: glassmorphism stats card — Total Saved ₦15,400, +34% badge,
-///    Cashback ₦1,240, Best month April.
-///  • Bottom: bar chart card — Monthly Savings with 5 bars (Dec–Apr),
-///    the April bar highlighted in red gradient with ₦5.2k label.
 class SavingsIllustration extends StatefulWidget {
   const SavingsIllustration({super.key});
 
@@ -17,16 +10,80 @@ class SavingsIllustration extends StatefulWidget {
 class _SavingsIllustrationState extends State<SavingsIllustration>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _barAnim;
+
+  // Layered cards slide & fade
+  late final Animation<double> _statsCardOpacity;
+  late final Animation<double> _statsCardSlide;
+  late final Animation<double> _chartCardOpacity;
+  late final Animation<double> _chartCardSlide;
+
+  // Staggered bars growth
+  late final List<Animation<double>> _barAnimations;
+
+  // April highlighted tag scale
+  late final Animation<double> _highlightTagScale;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..forward();
-    _barAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    // Stats Card entry: 0.0 -> 0.45
+    _statsCardOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.35, curve: Curves.easeIn),
+      ),
+    );
+    _statsCardSlide = Tween<double>(begin: -30.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.45, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Chart Card entry: 0.15 -> 0.60
+    _chartCardOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.15, 0.45, curve: Curves.easeIn),
+      ),
+    );
+    _chartCardSlide = Tween<double>(begin: 30.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.15, 0.60, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Staggered bar animations (5 bars)
+    // Starts around 0.4 and spreads up to 0.9
+    _barAnimations = List.generate(5, (index) {
+      final start = 0.4 + (index * 0.09);
+      final end = (start + 0.3).clamp(0.0, 1.0);
+      return Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: Interval(start, end, curve: Curves.easeOutBack),
+        ),
+      );
+    });
+
+    // Highlight bubble tag pop: 0.75 -> 1.0
+    _highlightTagScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.75, 1.0, curve: Curves.elasticOut),
+      ),
+    );
+
+    // Delay slightly to coordinate with page transitions
+    Future.delayed(const Duration(milliseconds: 250), () {
+      if (mounted) _controller.forward();
+    });
   }
 
   @override
@@ -47,14 +104,41 @@ class _SavingsIllustrationState extends State<SavingsIllustration>
           Positioned(
             top: 0,
             left: 0,
-            child: _StatsCard(),
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _statsCardOpacity.value,
+                  child: Transform.translate(
+                    offset: Offset(0, _statsCardSlide.value),
+                    child: child,
+                  ),
+                );
+              },
+              child: _StatsCard(),
+            ),
           ),
 
           // ── Bar chart card (bottom) ────────────────────────────────────
           Positioned(
             top: 163,
             left: 0,
-            child: _BarChartCard(barAnim: _barAnim),
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _chartCardOpacity.value,
+                  child: Transform.translate(
+                    offset: Offset(0, _chartCardSlide.value),
+                    child: child,
+                  ),
+                );
+              },
+              child: _BarChartCard(
+                barAnimations: _barAnimations,
+                highlightTagScale: _highlightTagScale,
+              ),
+            ),
           ),
         ],
       ),
@@ -62,13 +146,9 @@ class _SavingsIllustrationState extends State<SavingsIllustration>
   }
 }
 
-// ── Stats card ─────────────────────────────────────────────────────────────────
-
 class _StatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Wrap in a separate container for the shadow, then clip the inner card.
-    // This is necessary because clipBehavior clips the shadow too if combined.
     return Container(
       width: 260,
       height: 149,
@@ -90,8 +170,8 @@ class _StatsCard extends StatelessWidget {
               begin: Alignment(-0.6, -1.0),
               end: Alignment(0.6, 1.0),
               colors: [
-                Color(0x2EFFFFFF), // 18% white
-                Color(0x0FFFFFFF), // 6% white
+                Color(0x2EFFFFFF),
+                Color(0x0FFFFFFF),
               ],
             ),
             borderRadius: BorderRadius.circular(22),
@@ -99,7 +179,6 @@ class _StatsCard extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              // Decorative red circle top-right
               Positioned(
                 right: -20,
                 top: -20,
@@ -112,21 +191,19 @@ class _StatsCard extends StatelessWidget {
                   ),
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Row: Total Saved + badge
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
+                        const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Total Saved',
                               style: TextStyle(
                                 fontFamily: 'Outfit',
@@ -136,8 +213,8 @@ class _StatsCard extends StatelessWidget {
                                 height: 1.5,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
+                            SizedBox(height: 4),
+                            Text(
                               '₦15,400',
                               style: TextStyle(
                                 fontFamily: 'Outfit',
@@ -150,16 +227,13 @@ class _StatsCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        // +34% badge
                         Container(
                           height: 34,
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
                             color: const Color(0x40FBBF24),
                             borderRadius: BorderRadius.circular(100),
-                            border: Border.all(
-                              color: const Color(0x66FBBF24),
-                            ),
+                            border: Border.all(color: const Color(0x66FBBF24)),
                           ),
                           alignment: Alignment.center,
                           child: const Text(
@@ -176,19 +250,18 @@ class _StatsCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    // Row: Cashback + Best month
-                    Row(
+                    const Row(
                       children: [
                         _StatItem(
                           label: 'Cashback',
                           value: '₦1,240',
-                          valueColor: const Color(0xFFF87171),
+                          valueColor: Color(0xFFF87171),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         _StatItem(
                           label: 'Best month',
                           value: 'April',
-                          valueColor: const Color(0xFF34D399),
+                          valueColor: Color(0xFF34D399),
                         ),
                       ],
                     ),
@@ -244,14 +317,15 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-// ── Bar chart card ─────────────────────────────────────────────────────────────
-
 class _BarChartCard extends StatelessWidget {
-  const _BarChartCard({required this.barAnim});
+  const _BarChartCard({
+    required this.barAnimations,
+    required this.highlightTagScale,
+  });
 
-  final Animation<double> barAnim;
+  final List<Animation<double>> barAnimations;
+  final Animation<double> highlightTagScale;
 
-  // [label, normalised height 0–1, isHighlighted]
   static const List<(String, double, bool)> _bars = [
     ('Dec', 0.42, false),
     ('Jan', 0.65, false),
@@ -276,7 +350,6 @@ class _BarChartCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label
           const Text(
             'MONTHLY SAVINGS',
             style: TextStyle(
@@ -289,54 +362,53 @@ class _BarChartCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          // Bars
           Expanded(
-            child: AnimatedBuilder(
-              animation: barAnim,
-              builder: (context, child) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: _bars.map((bar) {
-                    final label = bar.$1;
-                    final ratio = bar.$2;
-                    final isHighlighted = bar.$3;
-                    final barH = _maxBarHeight * ratio * barAnim.value;
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(_bars.length, (i) {
+                final bar = _bars[i];
+                final label = bar.$1;
+                final ratio = bar.$2;
+                final isHighlighted = bar.$3;
+                final barAnim = barAnimations[i];
 
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Column(
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: AnimatedBuilder(
+                      animation: barAnim,
+                      builder: (context, child) {
+                        final barH = _maxBarHeight * ratio * barAnim.value;
+                        return Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            // Value label on highlighted bar
                             if (isHighlighted)
-                              Container(
-                                width: double.infinity,
-                                height: 28,
-                                margin: const EdgeInsets.only(bottom: 0),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF87171),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                alignment: Alignment.centerLeft,
-                                padding: const EdgeInsets.only(left: 5),
-                                child: const Text(
-                                  '₦5.2k',
-                                  style: TextStyle(
-                                    fontFamily: 'Outfit',
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    height: 1.5,
+                              ScaleTransition(
+                                scale: highlightTagScale,
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF87171),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  alignment: Alignment.centerLeft,
+                                  padding: const EdgeInsets.only(left: 5),
+                                  child: const Text(
+                                    '₦5.2k',
+                                    style: TextStyle(
+                                      fontFamily: 'Outfit',
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                      height: 1.5,
+                                    ),
                                   ),
                                 ),
                               ),
-                            // Bar body
                             Container(
                               width: double.infinity,
-                              height: isHighlighted
-                                  ? (barH - 28).clamp(0, _maxBarHeight)
-                                  : barH,
+                              height: isHighlighted ? (barH - 28).clamp(0.0, _maxBarHeight) : barH,
                               decoration: BoxDecoration(
                                 gradient: isHighlighted
                                     ? const LinearGradient(
@@ -348,9 +420,7 @@ class _BarChartCard extends StatelessWidget {
                                         ],
                                       )
                                     : null,
-                                color: isHighlighted
-                                    ? null
-                                    : const Color(0x26FFFFFF),
+                                color: isHighlighted ? null : const Color(0x26FFFFFF),
                                 borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(6),
                                   topRight: Radius.circular(6),
@@ -360,7 +430,6 @@ class _BarChartCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            // Month label
                             Text(
                               label,
                               style: const TextStyle(
@@ -372,12 +441,12 @@ class _BarChartCard extends StatelessWidget {
                               ),
                             ),
                           ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      },
+                    ),
+                  ),
                 );
-              },
+              }),
             ),
           ),
         ],

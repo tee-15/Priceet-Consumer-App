@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_back_bar.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_text_field.dart';
 
 class AddAddressScreen extends StatefulWidget {
   const AddAddressScreen({super.key});
@@ -12,7 +16,6 @@ class AddAddressScreen extends StatefulWidget {
 class _AddAddressScreenState extends State<AddAddressScreen> {
   final _addressController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  // ignore: prefer_final_fields
   bool _isLoading = false;
 
   @override
@@ -32,50 +35,35 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   }
 
   void _useCurrentLocation() {
-    // TODO: integrate geolocator package
     setState(() => _addressController.text = 'Fetching location...');
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() => _addressController.text = '102 Main Street, Lagos, Nigeria');
+      }
+    });
   }
 
   void _onContinue() {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pushNamed('/create-pin');
+    setState(() => _isLoading = true);
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        Navigator.of(context).pushNamed('/create-pin');
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
+      appBar: const AppBackBar(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Top nav bar ──────────────────────────────────────────────
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(top: topPadding),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5))),
-            ),
-            child: SizedBox(
-              height: 53,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 20,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // ── Scrollable content ───────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -89,7 +77,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
+                        color: AppColors.greyBg,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,
@@ -108,7 +96,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                         fontFamily: 'Outfit',
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF002367),
+                        color: AppColors.brandBlue,
                         height: 1.5,
                       ),
                     ),
@@ -121,78 +109,25 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                         fontFamily: 'Outfit',
                         fontSize: 16,
                         fontWeight: FontWeight.w400,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.greyText,
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 24),
 
-                    // ── Address field ────────────────────────────────
-                    const Text(
-                      'Home Address',
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF002367),
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
+                    // Address field
+                    AppTextField(
+                      label: 'Home Address',
+                      hint: 'Enter your home address',
                       controller: _addressController,
                       keyboardType: TextInputType.streetAddress,
                       textCapitalization: TextCapitalization.words,
                       validator: (v) =>
-                          (v == null || v.trim().isEmpty)
-                              ? 'Please enter your home address'
-                              : null,
-                      style: const TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 14,
-                        color: Color(0xFF111827),
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Enter your home address',
-                        hintStyle: const TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 14,
-                          color: Color(0xFF6B7280),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFF9FAFB),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0x14000000)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0x14000000)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(
-                              color: Color(0xFF002367), width: 1.5),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFDC2626)),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(
-                              color: Color(0xFFDC2626), width: 1.5),
-                        ),
-                      ),
+                          (v == null || v.trim().isEmpty) ? 'Please enter your home address' : null,
                     ),
                     const SizedBox(height: 16),
 
-                    // ── Use current location ─────────────────────────
+                    // Use current location
                     GestureDetector(
                       onTap: _useCurrentLocation,
                       child: Row(
@@ -210,7 +145,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                               fontFamily: 'Outfit',
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF002367),
+                              color: AppColors.brandBlue,
                               height: 1.5,
                             ),
                           ),
@@ -223,46 +158,17 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             ),
           ),
 
-          // ── Continue button ──────────────────────────────────────────
+          // Continue button
           Container(
             padding: EdgeInsets.fromLTRB(16, 24, 16, 24 + bottomPadding),
             decoration: const BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               border: Border(top: BorderSide(color: Color(0xFFF5F5F5))),
             ),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _onContinue,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF002367),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor:
-                      const Color(0xFF002367).withValues(alpha: 0.6),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text(
-                        'Continue',
-                        style: TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          height: 1.4,
-                        ),
-                      ),
-              ),
+            child: AppButton(
+              label: 'Continue',
+              isLoading: _isLoading,
+              onPressed: _onContinue,
             ),
           ),
         ],

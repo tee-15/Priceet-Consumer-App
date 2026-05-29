@@ -124,4 +124,41 @@ class AppTextStyles {
     letterSpacing: 0.5,
     color: AppColors.white,
   );
+
+  // ── Forms & Standard UI ──────────────────────────────────────────────────
+  static const TextStyle fieldLabel = TextStyle(
+    fontFamily: 'Outfit',
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: AppColors.greyText,
+    letterSpacing: 0.6,
+    height: 1.5,
+  );
+
+  static const TextStyle inputText = TextStyle(
+    fontFamily: 'Outfit',
+    fontSize: 15,
+    color: AppColors.darkText,
+  );
+
+  static const TextStyle hintText = TextStyle(
+    fontFamily: 'Outfit',
+    fontSize: 15,
+    color: Color(0x80111827), // darkText with 50% opacity
+  );
+
+  static const TextStyle errorText = TextStyle(
+    fontFamily: 'Outfit',
+    fontSize: 13,
+    color: AppColors.error,
+  );
+
+  static const TextStyle buttonText = TextStyle(
+    fontFamily: 'Outfit',
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.white,
+    height: 1.4,
+  );
 }
+

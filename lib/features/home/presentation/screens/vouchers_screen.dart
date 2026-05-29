@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'voucher_detail_screen.dart';
+import 'buy_voucher_screen.dart';
 
 // ── Data model ─────────────────────────────────────────────────────────────────
 
@@ -56,6 +58,12 @@ const _vouchers = [
   ),
 ];
 
+/// Maps each voucher index to its detail data
+final _voucherDetails = [
+  sampleVoucher90,
+  sampleVoucher30,
+];
+
 // ── Screen ─────────────────────────────────────────────────────────────────────
 
 class VouchersScreen extends StatefulWidget {
@@ -97,7 +105,31 @@ class _VouchersScreenState extends State<VouchersScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                   child: Transform.translate(
                     offset: const Offset(0, -24),
-                    child: const _BuyVoucherCard(),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondary) =>
+                                const BuyVoucherScreen(),
+                            transitionsBuilder:
+                                (context, animation, secondary, child) {
+                              final slide = Tween<Offset>(
+                                begin: const Offset(0, 1),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeOutCubic,
+                              ));
+                              return SlideTransition(
+                                  position: slide, child: child);
+                            },
+                            transitionDuration:
+                                const Duration(milliseconds: 400),
+                          ),
+                        );
+                      },
+                      child: const _BuyVoucherCard(),
+                    ),
                   ),
                 ),
                 // ── Your Vouchers header ─────────────────────────
@@ -141,10 +173,38 @@ class _VouchersScreenState extends State<VouchersScreen> {
                   ),
                 ),
                 // ── Voucher cards ────────────────────────────────
-                ..._vouchers.map((v) => Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                ...List.generate(_vouchers.length, (index) {
+                  final v = _vouchers[index];
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondary) =>
+                                VoucherDetailScreen(
+                                    voucher: _voucherDetails[index]),
+                            transitionsBuilder:
+                                (context, animation, secondary, child) {
+                              final slide = Tween<Offset>(
+                                begin: const Offset(1, 0),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeOutCubic,
+                              ));
+                              return SlideTransition(
+                                  position: slide, child: child);
+                            },
+                            transitionDuration:
+                                const Duration(milliseconds: 380),
+                          ),
+                        );
+                      },
                       child: _VoucherCard(voucher: v),
-                    )),
+                    ),
+                  );
+                }),
                 const SizedBox(height: 8),
               ],
             ),

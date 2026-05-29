@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-/// QR scan illustration for walkthrough slide 2 — "Scan & Pay Anywhere".
-///
-/// Matches the Figma design: a white card with a QR code pattern, a green
-/// scan-line, store name label, and a "₦3,200 Paid!" confirmation badge below.
 class QrScanIllustration extends StatefulWidget {
   const QrScanIllustration({super.key});
 
@@ -14,26 +10,38 @@ class QrScanIllustration extends StatefulWidget {
 
 class _QrScanIllustrationState extends State<QrScanIllustration>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _scanController;
+  late final AnimationController _controller;
   late final Animation<double> _scanAnim;
+  late final Animation<double> _badgeScale;
 
   @override
   void initState() {
     super.initState();
-    _scanController = AnimationController(
+    _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
+    );
 
     _scanAnim = CurvedAnimation(
-      parent: _scanController,
+      parent: _controller,
       curve: Curves.easeInOut,
+    );
+
+    // Loop scan line up and down
+    _controller.repeat(reverse: true);
+
+    // Badge scale pop (elastic entry after a short delay)
+    _badgeScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 0.7, curve: Curves.elasticOut),
+      ),
     );
   }
 
   @override
   void dispose() {
-    _scanController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -101,12 +109,16 @@ class _QrScanIllustrationState extends State<QrScanIllustration>
                                         Colors.transparent,
                                       ],
                                     ),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Color(0xCC34D399),
-                                        blurRadius: 8,
-                                      ),
-                                    ],
+                                  ),
+                                  child: const DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0xCC34D399),
+                                          blurRadius: 8,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );
@@ -159,51 +171,52 @@ class _QrScanIllustrationState extends State<QrScanIllustration>
           Positioned(
             bottom: 0,
             left: 26,
-            child: Container(
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 1),
-              decoration: BoxDecoration(
-                color: const Color(0x2E34D399), // rgba(52,211,153,0.18)
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(
-                  color: const Color(0x5934D399), // rgba(52,211,153,0.35)
+            child: ScaleTransition(
+              scale: _badgeScale,
+              child: Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0x2E34D399),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: const Color(0x5934D399),
+                  ),
                 ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Green check circle
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF34D399),
-                      borderRadius: BorderRadius.circular(11),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF34D399),
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        '✓',
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 12,
+                          color: Colors.white,
+                          height: 1.5,
+                        ),
+                      ),
                     ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      '✓',
+                    const SizedBox(width: 8),
+                    const Text(
+                      '₦3,200 Paid!',
                       style: TextStyle(
                         fontFamily: 'Outfit',
-                        fontSize: 12,
-                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF34D399),
                         height: 1.5,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Amount text
-                  const Text(
-                    '₦3,200 Paid!',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF34D399),
-                      height: 1.5,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -213,11 +226,9 @@ class _QrScanIllustrationState extends State<QrScanIllustration>
   }
 }
 
-/// The QR code dot pattern (6×7 grid of dark squares).
 class _QrPattern extends StatelessWidget {
   const _QrPattern();
 
-  // 1 = filled dark square, 0 = empty
   static const List<List<int>> _grid = [
     [1, 0, 1, 1, 0, 1],
     [0, 1, 1, 0, 1, 1],
@@ -263,7 +274,6 @@ class _QrPattern extends StatelessWidget {
   }
 }
 
-/// A single QR corner position marker (the three squares in QR corners).
 class _QrCornerMarker extends StatelessWidget {
   const _QrCornerMarker({required this.left, required this.top});
 

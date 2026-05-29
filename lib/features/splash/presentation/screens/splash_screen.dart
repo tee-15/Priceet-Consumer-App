@@ -15,8 +15,13 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _spinController;
+  late final AnimationController _entryController;
+
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoOpacity;
+  late final Animation<double> _taglineOpacity;
 
   @override
   void initState() {
@@ -35,6 +40,38 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1000),
     )..repeat();
 
+    _entryController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    // Spring scale pop for the logo
+    _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entryController,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
+      ),
+    );
+
+    // Logo fade-in
+    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entryController,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
+      ),
+    );
+
+    // Tagline fade-in
+    _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entryController,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeIn),
+      ),
+    );
+
+    // Trigger entry animations
+    _entryController.forward();
+
     // Navigate to walkthrough after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
@@ -46,6 +83,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _spinController.dispose();
+    _entryController.dispose();
     super.dispose();
   }
 
@@ -60,14 +98,13 @@ class _SplashScreenState extends State<SplashScreen>
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  // 143° angle
                   begin: Alignment(-0.72, -0.70),
                   end: Alignment(0.72, 0.70),
                   stops: [0.0849, 0.4585, 0.9151],
                   colors: [
-                    AppColors.gradientStart, // #000D2E
-                    AppColors.gradientMid,   // #001858
-                    AppColors.gradientEnd,   // #002D8A
+                    AppColors.gradientStart,
+                    AppColors.gradientMid,
+                    AppColors.gradientEnd,
                   ],
                 ),
               ),
@@ -75,72 +112,77 @@ class _SplashScreenState extends State<SplashScreen>
           ),
 
           // ── Top-left blue radial glow ────────────────────────────────────
-          // Figma: left=-57.87, top=-182.19, size=343.565
           Positioned(
             left: -57.87,
             top: -182.19,
             child: _RadialGlow(
               size: 343.565,
-              centerColor: const Color(0x731E50FF), // rgba(30,80,255,0.45)
-              midColor: const Color(0x390F2880),    // rgba(15,40,128,0.225)
+              centerColor: const Color(0x731E50FF),
+              midColor: const Color(0x390F2880),
             ),
           ),
 
           // ── Bottom-right red radial glow ─────────────────────────────────
-          // Figma: left=212.26, top=380.53, size=269.57
           Positioned(
             left: 212.26,
             top: 380.53,
             child: _RadialGlow(
               size: 269.57,
-              centerColor: const Color(0x2ED90000), // rgba(217,0,0,0.18)
-              midColor: const Color(0x176D0000),    // rgba(109,0,0,0.09)
+              centerColor: const Color(0x2ED90000),
+              midColor: const Color(0x176D0000),
             ),
           ),
 
           // ── Centre logo block ────────────────────────────────────────────
-          // Figma: centred horizontally, top=276
-          // White rounded box (83×83, radius 24.4) + "Priceet" wordmark below
           Positioned(
             top: 276,
             left: 0,
             right: 0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // White rounded container with logo icon inside
-                Container(
-                  width: 83,
-                  height: 83,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24.4),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      width: 2.44,
+            child: AnimatedBuilder(
+              animation: _entryController,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _logoOpacity.value,
+                  child: Transform.scale(
+                    scale: _logoScale.value,
+                    child: child,
+                  ),
+                );
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 83,
+                    height: 83,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24.4),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        width: 2.44,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 2.44,
+                    ),
+                    child: Image.asset(
+                      'assets/images/priceet_logo_small.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 2.44,
+                  const SizedBox(height: 11),
+                  const Text(
+                    'Priceet',
+                    style: AppTextStyles.splashWordmark,
                   ),
-                  child: Image.asset(
-                    'assets/images/priceet_logo_small.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: 11),
-                // "Priceet" wordmark
-                Text(
-                  'Priceet',
-                  style: AppTextStyles.splashWordmark,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
           // ── Tagline ──────────────────────────────────────────────────────
-          // Figma: top=435, centred, width=275
           Positioned(
             top: 435,
             left: 0,
@@ -148,17 +190,19 @@ class _SplashScreenState extends State<SplashScreen>
             child: Center(
               child: SizedBox(
                 width: 275,
-                child: Text(
-                  'Priceet always finds the best deal for you.',
-                  style: AppTextStyles.tagline,
-                  textAlign: TextAlign.center,
+                child: FadeTransition(
+                  opacity: _taglineOpacity,
+                  child: const Text(
+                    'Priceet always finds the best deal for you.',
+                    style: AppTextStyles.tagline,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
             ),
           ),
 
           // ── Spinning loader ──────────────────────────────────────────────
-          // Figma: top=752, centred, size=42.426
           Positioned(
             top: 752,
             left: 0,
@@ -188,7 +232,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-/// Soft radial gradient circle for ambient glow effects.
 class _RadialGlow extends StatelessWidget {
   const _RadialGlow({
     required this.size,
