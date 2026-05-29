@@ -191,8 +191,8 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
                 height: 54,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Add to list logic
-                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    // Return the generated list name to the AI Chat screen
+                    Navigator.of(context).pop('Weekly food list');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF002367),

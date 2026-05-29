@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'priceet_ai_chat_screen.dart';
+import 'saved_list_details_screen.dart';
 
 class ListsScreen extends StatefulWidget {
   const ListsScreen({super.key});
@@ -34,10 +35,20 @@ class _ListsScreenState extends State<ListsScreen> {
     },
   ];
 
-  void _openAiChat() {
-    Navigator.of(context).push(
+  Future<void> _openAiChat() async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const PriceetAiChatScreen()),
     );
+    if (result != null && result is String) {
+      setState(() {
+        _activeLists.insert(0, {
+          'title': result,
+          'itemCount': 4, // Mock values for the newly generated list
+          'estimatedTotal': 2200,
+          'hasNotification': false,
+        });
+      });
+    }
   }
 
   void _createList() {
@@ -343,7 +354,15 @@ class _ListsScreenState extends State<ListsScreen> {
                       ),
                     ),
                   // Existing lists
-                  ..._activeLists.map((list) => _buildListCard(list)),
+                  ..._activeLists.map((list) => GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SavedListDetailsScreen(title: list['title'])),
+                      );
+                    },
+                    child: _buildListCard(list),
+                  )),
                 ],
               ),
             ),

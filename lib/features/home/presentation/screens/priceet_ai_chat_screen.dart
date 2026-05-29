@@ -225,12 +225,17 @@ class _PriceetAiChatScreenState extends State<PriceetAiChatScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
+                      onPressed: () async {
+                        final result = await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => const GeneratedListScreen(),
                           ),
                         );
+                        if (result != null && result is String) {
+                          if (context.mounted) {
+                            Navigator.of(context).pop(result);
+                          }
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFE50000), // Red color from design

@@ -228,7 +228,7 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
                 ],
               ),
             ),
-          );
+          ),
         ],
       ),
     );
