@@ -368,17 +368,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     color: Color(0xFF00BC7D),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  _fmt(widget.basePrice * 1.5),
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
-                    decoration: TextDecoration.lineThrough,
+                if (widget.isPriceetProduct) ...[
+                  const SizedBox(width: 12),
+                  Text(
+                    _fmt(widget.basePrice * 1.5),
+                    style: const TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF9CA3AF),
+                      decoration: TextDecoration.lineThrough,
+                    ),
                   ),
-                ),
+                ],
                 const SizedBox(width: 8),
                 Text(
                   widget.unit,
@@ -450,28 +452,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF1F2937),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.star_rounded, size: 14, color: Color(0xFFD97706)),
-                        SizedBox(width: 4),
-                        Text(
-                          '4.8',
-                          style: TextStyle(
-                            fontFamily: 'Outfit',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFFB45309),
                           ),
                         ),
                       ],
