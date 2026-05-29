@@ -72,8 +72,8 @@ class _SplashScreenState extends State<SplashScreen>
     // Trigger entry animations
     _entryController.forward();
 
-    // Navigate to walkthrough after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
+    // Navigate to walkthrough after 5 seconds (allows time for web debug render)
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/walkthrough');
       }
@@ -204,7 +204,7 @@ class _SplashScreenState extends State<SplashScreen>
 
           // ── Spinning loader ──────────────────────────────────────────────
           Positioned(
-            top: 752,
+            bottom: 60,
             left: 0,
             right: 0,
             child: Center(

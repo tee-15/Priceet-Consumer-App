@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'product_detail_screen.dart';
+import 'retailer_details_screen.dart';
+import 'voucher_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -407,7 +410,20 @@ class _ProductsRow extends StatelessWidget {
       child: Row(
         children: _items
             .map((p) => _PressScaleFeedback(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => ProductDetailScreen(
+                                name: p.name,
+                                image: p.image,
+                                unit: p.unit,
+                                basePrice: double.parse(
+                                    p.price.replaceAll('₦', '').replaceAll(',', '')),
+                                isPriceetProduct: p.owner == _ProductOwner.priceet,
+                                storeName: p.store,
+                              )),
+                    );
+                  },
                   child: Container(
                     width: 150,
                     height: 225,
@@ -578,7 +594,20 @@ class _CheapestList extends StatelessWidget {
       child: Column(
         children: _items
             .map((item) => _PressScaleFeedback(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => ProductDetailScreen(
+                                name: item.name,
+                                image: item.image,
+                                unit: '1 item',
+                                basePrice: double.parse(
+                                    item.price.replaceAll('₦', '').replaceAll(',', '')),
+                                isPriceetProduct: false, // Items in "Cheapest Near You" belong to specific retailers
+                                storeName: item.store,
+                              )),
+                    );
+                  },
                   child: Container(
                     height: 110,
                     margin: const EdgeInsets.only(bottom: 12),
@@ -689,7 +718,17 @@ class _RetailersRow extends StatelessWidget {
       child: Row(
         children: _items
             .map((r) => _PressScaleFeedback(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => RetailerDetailsScreen(
+                                name: r.name,
+                                image: r.image,
+                                distance: r.distance,
+                                rating: r.rating,
+                              )),
+                    );
+                  },
                   child: Container(
                     width: 150,
                     height: 219,
@@ -825,7 +864,15 @@ class _VouchersList extends StatelessWidget {
       child: Column(
         children: _items
             .map((v) => _PressScaleFeedback(
-                  onTap: () {},
+                  onTap: () {
+                    final is90Day = v.title.contains('90');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => VoucherDetailScreen(
+                                voucher: is90Day ? sampleVoucher90 : sampleVoucher30,
+                              )),
+                    );
+                  },
                   child: Container(
                     height: 116,
                     margin: const EdgeInsets.only(bottom: 12),

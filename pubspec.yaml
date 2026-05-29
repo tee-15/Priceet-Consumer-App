@@ -71,6 +71,7 @@ flutter:
     - assets/images/icon_location_pin.svg
     - assets/images/icon_pin.svg
     - assets/images/icon_check.svg
+    - assets/images/product_placeholder.jpg
 
   fonts:
     - family: Outfit

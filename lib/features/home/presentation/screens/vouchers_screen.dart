@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'voucher_detail_screen.dart';
 import 'buy_voucher_screen.dart';
-import 'product_detail_screen.dart';
 
 // ── Data model ─────────────────────────────────────────────────────────────────
 
@@ -215,17 +214,6 @@ class _VouchersScreenState extends State<VouchersScreen> {
       bottomNavigationBar: _BottomNav(
         currentIndex: _currentTab,
         onTap: (i) => setState(() => _currentTab = i),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ProductDetailScreen()),
-          );
-        },
-        backgroundColor: const Color(0xFF00BC7D),
-        icon: const Icon(Icons.shopping_bag_rounded, color: Colors.white),
-        label: const Text('Test Product UI',
-            style: TextStyle(fontFamily: 'Outfit', color: Colors.white)),
       ),
     );
   }

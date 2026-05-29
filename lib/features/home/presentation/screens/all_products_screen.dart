@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'product_detail_screen.dart';
 import '../../../../core/theme/app_colors.dart';
 
 enum _ProductOwner { priceet, retailer }
@@ -442,7 +443,21 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _PressScaleFeedback(
-      onTap: () {},
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ProductDetailScreen(
+              name: product.name,
+              image: product.image,
+              unit: product.unit,
+              basePrice: double.parse(
+                  product.price.replaceAll('₦', '').replaceAll(',', '')),
+              isPriceetProduct: product.owner == _ProductOwner.priceet,
+              storeName: product.store,
+            ),
+          ),
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,

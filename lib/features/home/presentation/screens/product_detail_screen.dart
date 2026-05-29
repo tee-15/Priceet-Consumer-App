@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/widgets/status_modal.dart';
 
 // ── Data models ──────────────────────────────────────────────────────────────
 
@@ -24,7 +25,22 @@ class StorePrice {
 // ── Screen ───────────────────────────────────────────────────────────────────
 
 class ProductDetailScreen extends StatefulWidget {
-  const ProductDetailScreen({super.key});
+  const ProductDetailScreen({
+    super.key,
+    required this.name,
+    required this.image,
+    required this.unit,
+    required this.basePrice,
+    required this.isPriceetProduct,
+    required this.storeName,
+  });
+
+  final String name;
+  final String image;
+  final String unit;
+  final double basePrice;
+  final bool isPriceetProduct;
+  final String storeName;
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -37,44 +53,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   late final Animation<Offset> _bottomBarSlide;
   late final List<Animation<Offset>> _itemSlides;
 
-  final List<StorePrice> _stores = const [
-    StorePrice(
-      storeName: 'FreshMart',
-      distance: '0.8 mi',
-      price: 1500,
-      isBestPrice: true,
-      isOutOfStock: false,
-      logoIcon: Icons.storefront_rounded,
-    ),
-    StorePrice(
-      storeName: 'City Grocers',
-      distance: '1.2 mi',
-      price: 1790,
-      isBestPrice: false,
-      isOutOfStock: false,
-      logoIcon: Icons.local_grocery_store_rounded,
-    ),
-    StorePrice(
-      storeName: 'MegaStore',
-      distance: '3.5 mi',
-      price: 1990,
-      isBestPrice: false,
-      isOutOfStock: false,
-      logoIcon: Icons.shopping_basket_rounded,
-    ),
-    StorePrice(
-      storeName: 'Spar',
-      distance: '4.2 mi',
-      price: 3680,
-      isBestPrice: false,
-      isOutOfStock: true,
-      logoIcon: Icons.shopping_cart_rounded,
-    ),
-  ];
+  late final List<StorePrice> _stores;
+  int? _selectedStoreIndex;
 
   @override
   void initState() {
     super.initState();
+    _stores = _generateMockStores(widget.basePrice);
+
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
@@ -110,6 +96,44 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     _ctrl.forward();
   }
 
+  List<StorePrice> _generateMockStores(double basePrice) {
+    // Generate realistic variations around the base price
+    return [
+      StorePrice(
+        storeName: 'FreshMart',
+        distance: '0.8 mi',
+        price: basePrice * 0.95, // 5% cheaper
+        isBestPrice: true,
+        isOutOfStock: false,
+        logoIcon: Icons.storefront_rounded,
+      ),
+      StorePrice(
+        storeName: 'City Grocers',
+        distance: '1.2 mi',
+        price: basePrice * 1.05, // 5% more expensive
+        isBestPrice: false,
+        isOutOfStock: false,
+        logoIcon: Icons.local_grocery_store_rounded,
+      ),
+      StorePrice(
+        storeName: 'MegaStore',
+        distance: '3.5 mi',
+        price: basePrice * 1.15,
+        isBestPrice: false,
+        isOutOfStock: false,
+        logoIcon: Icons.shopping_basket_rounded,
+      ),
+      StorePrice(
+        storeName: 'Spar',
+        distance: '4.2 mi',
+        price: basePrice * 1.5,
+        isBestPrice: false,
+        isOutOfStock: true,
+        logoIcon: Icons.shopping_cart_rounded,
+      ),
+    ];
+  }
+
   @override
   void dispose() {
     _ctrl.dispose();
@@ -136,7 +160,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         slivers: [
           _buildSliverAppBar(),
           SliverToBoxAdapter(child: _buildProductInfo()),
-          SliverToBoxAdapter(
+          if (widget.isPriceetProduct) ...[
+            SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
               child: FadeTransition(
@@ -169,7 +194,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                       position: _itemSlides[index],
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: _StoreCard(store: store, fmtFn: _fmt),
+                        child: GestureDetector(
+                          onTap: store.isOutOfStock
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _selectedStoreIndex = index;
+                                  });
+                                },
+                          child: _StoreCard(
+                            store: store,
+                            fmtFn: _fmt,
+                            isSelected: _selectedStoreIndex == index,
+                          ),
+                        ),
                       ),
                     ),
                   );
@@ -178,6 +216,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               ),
             ),
           ),
+          ],
+          if (!widget.isPriceetProduct) ...[
+            SliverToBoxAdapter(child: _buildRetailerExtraInfo()),
+            SliverPadding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom + 40,
+              ),
+            ),
+          ],
         ],
       ),
       // Bottom Actions moved to bottomNavigationBar for guaranteed rendering
@@ -225,13 +272,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Container(
-              color: const Color(0xFFE5E7EB),
-              child: const Icon(
-                Icons.image_rounded,
-                size: 80,
-                color: Color(0xFF9CA3AF),
-              ),
+            Image.network(
+              widget.image,
+              fit: BoxFit.cover,
             ),
             // Gradient overlay at bottom
             Positioned(
@@ -260,12 +303,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00BC7D),
+                    color: widget.isPriceetProduct ? const Color(0xFF00BC7D) : const Color(0xFF0F172B),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'Priceet',
-                    style: TextStyle(
+                  child: Text(
+                    widget.isPriceetProduct ? 'Priceet' : widget.storeName,
+                    style: const TextStyle(
                       fontFamily: 'Outfit',
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -290,9 +333,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Long Grain White Rice',
-              style: TextStyle(
+            Text(
+              widget.name,
+              style: const TextStyle(
                 fontFamily: 'Outfit',
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
@@ -301,9 +344,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Premium long grain white rice perfect for your daily meals, sourced from trusted local farms.',
-              style: TextStyle(
+            Text(
+              'Premium ${widget.name.toLowerCase()} perfect for your daily meals, sourced from trusted local farms.',
+              style: const TextStyle(
                 fontFamily: 'Outfit',
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
@@ -316,9 +359,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                const Text(
-                  '₦1,500',
-                  style: TextStyle(
+                Text(
+                  _fmt(widget.basePrice),
+                  style: const TextStyle(
                     fontFamily: 'Outfit',
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
@@ -326,9 +369,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  '₦3,000',
-                  style: TextStyle(
+                Text(
+                  _fmt(widget.basePrice * 1.5),
+                  style: const TextStyle(
                     fontFamily: 'Outfit',
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -337,9 +380,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  'per lb',
-                  style: TextStyle(
+                Text(
+                  widget.unit,
+                  style: const TextStyle(
                     fontFamily: 'Outfit',
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -351,6 +394,207 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRetailerExtraInfo() {
+    return FadeTransition(
+      opacity: _fadeAnim,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            // Seller Info Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFF3F4F6)),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x05000000), blurRadius: 8, offset: Offset(0, 4)),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.storefront_rounded, color: Color(0xFF9CA3AF), size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sold by',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.storeName,
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.star_rounded, size: 14, color: Color(0xFFD97706)),
+                        SizedBox(width: 4),
+                        Text(
+                          '4.8',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFB45309),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            
+            // ── Creative Premium Section: Customer Reviews & Distribution ──
+            const Text(
+              'Customer Reviews',
+              style: TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF111827),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFF3F4F6)),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x05000000), blurRadius: 10, offset: Offset(0, 4)),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Left side: Large Score
+                  Column(
+                    children: [
+                      const Text(
+                        '4.8',
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 48,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF111827),
+                          height: 1.0,
+                          letterSpacing: -1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(5, (index) {
+                          return Icon(
+                            index < 4 ? Icons.star_rounded : Icons.star_half_rounded,
+                            color: const Color(0xFFFBBF24),
+                            size: 16,
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '1,284 ratings',
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF9CA3AF),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 24),
+                  // Right side: Progress bars
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildRatingBar(5, 0.85),
+                        const SizedBox(height: 6),
+                        _buildRatingBar(4, 0.10),
+                        const SizedBox(height: 6),
+                        _buildRatingBar(3, 0.03),
+                        const SizedBox(height: 6),
+                        _buildRatingBar(2, 0.01),
+                        const SizedBox(height: 6),
+                        _buildRatingBar(1, 0.01),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRatingBar(int star, double percent) {
+    return Row(
+      children: [
+        Text(
+          '$star',
+          style: const TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF4B5563),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: percent,
+              minHeight: 6,
+              backgroundColor: const Color(0xFFF3F4F6),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFBBF24)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -375,7 +619,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             child: SizedBox(
               height: 56,
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  if (widget.isPriceetProduct && _selectedStoreIndex == null) {
+                    StatusModal.show(
+                      context,
+                      type: StatusModalType.error,
+                      title: 'No Store Selected',
+                      message: 'Please select a store price from the list first.',
+                      buttonText: 'Okay',
+                    );
+                  } else {
+                    final storeTitle = widget.isPriceetProduct
+                        ? _stores[_selectedStoreIndex!].storeName
+                        : widget.storeName;
+                    StatusModal.show(
+                      context,
+                      type: StatusModalType.success,
+                      title: 'Added to List',
+                      message: '${widget.name} from $storeTitle has been added to your shopping list.',
+                      buttonText: 'Continue',
+                    );
+                  }
+                },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFFE5E7EB), width: 2),
                   shape: RoundedRectangleBorder(
@@ -400,7 +665,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             child: SizedBox(
               height: 56,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  if (widget.isPriceetProduct && _selectedStoreIndex == null) {
+                    StatusModal.show(
+                      context,
+                      type: StatusModalType.error,
+                      title: 'No Store Selected',
+                      message: 'Please select a store price from the list to add to cart.',
+                      buttonText: 'Okay',
+                    );
+                  } else {
+                    final storeTitle = widget.isPriceetProduct
+                        ? _stores[_selectedStoreIndex!].storeName
+                        : widget.storeName;
+                    final finalPrice = widget.isPriceetProduct
+                        ? _stores[_selectedStoreIndex!].price
+                        : widget.basePrice;
+                    StatusModal.show(
+                      context,
+                      type: StatusModalType.success,
+                      title: 'Added to Cart',
+                      message: '${widget.name} from $storeTitle was added to your cart for ${_fmt(finalPrice)}.',
+                      buttonText: 'Checkout',
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF002367),
                   elevation: 0,
@@ -437,20 +726,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 // ── Store Card ───────────────────────────────────────────────────────────────
 
 class _StoreCard extends StatelessWidget {
-  const _StoreCard({required this.store, required this.fmtFn});
+  const _StoreCard({
+    required this.store,
+    required this.fmtFn,
+    required this.isSelected,
+  });
 
   final StorePrice store;
   final String Function(double) fmtFn;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isSelected ? const Color(0xFFECFDF5) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: store.isBestPrice
-            ? Border.all(color: const Color(0xFF00BC7D), width: 1.5)
-            : Border.all(color: Colors.transparent, width: 1.5),
+        border: isSelected
+            ? Border.all(color: const Color(0xFF00BC7D), width: 2.0)
+            : store.isBestPrice
+                ? Border.all(color: const Color(0xFF00BC7D).withValues(alpha: 0.3), width: 1.5)
+                : Border.all(color: Colors.transparent, width: 1.5),
         boxShadow: const [
           BoxShadow(
             color: Color(0x06000000),
