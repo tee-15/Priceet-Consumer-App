@@ -53,7 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: const _RetailersRow(),
                   ),
                   const SizedBox(height: 24),
-                  const _Section(title: 'Vouchers', child: _VouchersList()),
+                  _Section(
+                    title: 'Vouchers',
+                    onViewAll: () => Navigator.of(context).pushNamed('/vouchers'),
+                    child: const _VouchersList(),
+                  ),
                 ],
               ),
             ),

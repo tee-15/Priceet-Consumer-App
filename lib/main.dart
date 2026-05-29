@@ -15,6 +15,7 @@ import 'features/home/presentation/screens/cheapest_near_you_screen.dart';
 import 'features/home/presentation/screens/nearby_retailers_screen.dart';
 import 'features/home/presentation/screens/search_screen.dart';
 import 'features/home/presentation/screens/notifications_screen.dart';
+import 'features/home/presentation/screens/vouchers_screen.dart';
 import 'features/auth/presentation/screens/account_created_screen.dart';
 
 void main() {
@@ -73,6 +74,8 @@ class PriceetApp extends StatelessWidget {
             page = const SearchScreen();
           case '/notifications':
             page = const NotificationsScreen();
+          case '/vouchers':
+            page = const VouchersScreen();
           default:
             return null;
         }
