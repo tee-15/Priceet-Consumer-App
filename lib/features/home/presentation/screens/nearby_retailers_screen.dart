@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'retailer_details_screen.dart';
+
 // ── Data model ─────────────────────────────────────────────────────────────────
 
 class _Retailer {
@@ -159,16 +161,21 @@ class _AppBar extends StatelessWidget {
           GestureDetector(
             onTap: onBack,
             child: Container(
-              width: 40,
-              height: 40,
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFF3F4F6)),
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ],
               ),
               child: const Icon(
                 Icons.arrow_back_ios_new_rounded,
-                size: 16,
+                size: 18,
                 color: Color(0xFF1F2937),
               ),
             ),
