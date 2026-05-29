@@ -146,7 +146,7 @@ class _CheapestNearYouScreenState extends State<CheapestNearYouScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 170 / 185,
+                childAspectRatio: 170 / 235,
               ),
               itemCount: _items.length,
               itemBuilder: (context, index) =>

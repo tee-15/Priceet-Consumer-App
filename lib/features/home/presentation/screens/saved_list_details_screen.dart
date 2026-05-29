@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-class GeneratedListScreen extends StatefulWidget {
-  const GeneratedListScreen({super.key});
+class SavedListDetailsScreen extends StatefulWidget {
+  final String title;
+  const SavedListDetailsScreen({super.key, required this.title});
 
   @override
-  State<GeneratedListScreen> createState() => _GeneratedListScreenState();
+  State<SavedListDetailsScreen> createState() => _SavedListDetailsScreenState();
 }
 
-class _GeneratedListScreenState extends State<GeneratedListScreen> {
+class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
   final TextEditingController _searchController = TextEditingController(text: 'Weekly food list');
 
   final List<String> _suggestions = [
@@ -173,7 +174,7 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
           ListView(
             padding: const EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 120),
             children: [
-              _buildHeaderCard(),
+              _buildTitleSection(),
               const SizedBox(height: 32),
               ..._categories.map((category) => _buildCategorySection(category)),
             ],
@@ -185,35 +186,49 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
             bottom: 0,
             child: Container(
               color: const Color(0xFFFAFAFA),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              child: SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Add to list logic
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF002367),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF002367),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.add, color: Colors.white),
                     ),
                   ),
-                  child: const Text(
-                    'Add to List',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton.icon(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF002367),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.shopping_cart_outlined, size: 20),
+                      label: const Text(
+                        'Add List to Cart (₦2,200)',
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-          ),
+          );
         ],
       ),
     );
@@ -224,157 +239,86 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
       backgroundColor: Colors.white,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
-      leading: GestureDetector(
-        onTap: () => Navigator.of(context).pop(),
-        child: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(
-            color: Color(0xFFF3F4F6),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.arrow_back, color: Color(0xFF1F2937), size: 20),
-        ),
-      ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Priceet AI',
-            style: TextStyle(
-              fontFamily: 'Outfit',
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF111827),
-            ),
-          ),
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF00BC7D),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 5),
-              const Text(
-                'Online',
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF00BC7D),
-                ),
-              ),
-            ],
-          ),
-        ],
+      leading: IconButton(
+        onPressed: () => Navigator.of(context).pop(),
+        icon: const Icon(Icons.arrow_back, color: Color(0xFF002367)),
       ),
       actions: [
         IconButton(
           onPressed: () {},
-          icon: const Icon(Icons.more_horiz, color: Color(0xFF9CA3AF)),
+          icon: const Icon(Icons.search, color: Color(0xFF002367)),
         ),
       ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(color: const Color(0xFFE5E7EB), height: 1),
-      ),
     );
   }
 
-  Widget _buildHeaderCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 4,
-            offset: Offset(0, 1),
+  Widget _buildTitleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.title,
+          style: const TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF002367),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'What do you want to cook or buy?',
-            style: TextStyle(
-              fontFamily: 'Outfit',
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1F2937),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          '4 items • Est. Total',
+          style: TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 14,
+            color: Color(0xFF6B7280),
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          '₦2,200',
+          style: TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF002367),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text(
+              'Budget: ₦50,000',
+              style: TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF6B7280),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  alignment: Alignment.centerLeft,
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    style: const TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 14,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
-                ),
+            Text(
+              '4%',
+              style: TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF00BC7D),
               ),
-              const SizedBox(width: 12),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF002367),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
-              ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: 0.04,
+            minHeight: 8,
+            backgroundColor: const Color(0xFFF3F4F6),
+            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00BC7D)),
           ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 10,
-            children: _suggestions.map((s) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  s,
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF4B5563),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

@@ -629,7 +629,7 @@ class _CheapestList extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    height: 110,
+                    height: 125,
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
                       color: Colors.white,
