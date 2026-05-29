@@ -46,21 +46,21 @@ const _retailers = [
     distance: '0.5 mi',
     rating: '4.6',
     categories: 'Grocery • Fresh Produce • Deli',
-    image: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1534723452862-4c874018d66d?w=400&h=300&fit=crop',
   ),
   _Retailer(
     name: 'Jumbo Market',
     distance: '1.8 mi',
     rating: '4.3',
     categories: 'Grocery • Bulk Foods • Organic',
-    image: 'https://images.unsplash.com/photo-1588964895597-cfccd6e2dbf9?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop',
   ),
   _Retailer(
     name: 'Pick n Pay',
     distance: '2.1 mi',
     rating: '4.4',
     categories: 'Grocery • Fresh Produce • Bakery',
-    image: 'https://images.unsplash.com/photo-1534723452862-4c874018d66d?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&h=300&fit=crop',
   ),
 ];
 
@@ -99,8 +99,24 @@ class _NearbyRetailersScreenState extends State<NearbyRetailersScreen> {
               itemCount: _retailers.length,
               separatorBuilder: (context, index) =>
                   const SizedBox(height: 16),
-              itemBuilder: (context, index) =>
-                  _RetailerCard(retailer: _retailers[index]),
+              itemBuilder: (context, index) {
+                final retailer = _retailers[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => RetailerDetailsScreen(
+                          name: retailer.name,
+                          image: retailer.image,
+                          distance: retailer.distance,
+                          rating: retailer.rating,
+                        ),
+                      ),
+                    );
+                  },
+                  child: _RetailerCard(retailer: retailer),
+                );
+              },
             ),
           ),
         ],
