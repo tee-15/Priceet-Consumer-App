@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'generated_list_screen.dart';
 
 class PriceetAiChatScreen extends StatefulWidget {
   const PriceetAiChatScreen({super.key});
@@ -44,8 +45,8 @@ class _PriceetAiChatScreenState extends State<PriceetAiChatScreen> {
         _isSending = false;
         _messages.add({
           'isAi': true,
-          'text':
-              "Great choice! I'm building your \"${text.trim()}\" list now. Give me a moment to find the best prices near you...",
+          'text': "I've created a \"${text.trim()}\" list for you. I categorized the items, estimated quantities, and optimized for budget.",
+          'hasListButton': true,
         });
       });
       _scrollToBottom();
@@ -145,7 +146,8 @@ class _PriceetAiChatScreenState extends State<PriceetAiChatScreen> {
                   final msg = _messages[index];
                   final bool isAi = (msg['isAi'] as bool?) ?? false;
                   final String text = (msg['text'] as String?) ?? '';
-                  return isAi ? _buildAiMessage(text) : _buildUserMessage(text);
+                  final bool hasListButton = (msg['hasListButton'] as bool?) ?? false;
+                  return isAi ? _buildAiMessage(text, hasListButton) : _buildUserMessage(text);
                 }
                 // Suggestion chips after first AI message
                 if (_showSuggestions && index == _messages.length) {
@@ -166,7 +168,7 @@ class _PriceetAiChatScreenState extends State<PriceetAiChatScreen> {
     );
   }
 
-  Widget _buildAiMessage(String text) {
+  Widget _buildAiMessage(String text, bool hasListButton) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -186,34 +188,72 @@ class _PriceetAiChatScreenState extends State<PriceetAiChatScreen> {
           const SizedBox(width: 10),
           // Message bubble
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(4),
+                      topRight: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0A000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    text,
+                    style: const TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF1F2937),
+                      height: 1.5,
+                    ),
+                  ),
                 ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0A000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
+                if (hasListButton) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const GeneratedListScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE50000), // Red color from design
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.shopping_bag_outlined, size: 20),
+                      label: const Text(
+                        'View Generated List',
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
-              ),
-              child: Text(
-                text,
-                style: const TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF1F2937),
-                  height: 1.5,
-                ),
-              ),
+              ],
             ),
           ),
           const SizedBox(width: 40),
