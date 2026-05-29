@@ -356,39 +356,86 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             ),
             const SizedBox(height: 20),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  _fmt(widget.basePrice),
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF00BC7D),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        _fmt(widget.basePrice),
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF00BC7D),
+                        ),
+                      ),
+                      if (widget.isPriceetProduct) ...[
+                        const SizedBox(width: 12),
+                        Text(
+                          _fmt(widget.basePrice * 1.5),
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9CA3AF),
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.unit,
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                if (widget.isPriceetProduct) ...[
-                  const SizedBox(width: 12),
-                  Text(
-                    _fmt(widget.basePrice * 1.5),
-                    style: const TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF9CA3AF),
-                      decoration: TextDecoration.lineThrough,
-                    ),
+                Container(
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                ],
-                const SizedBox(width: 8),
-                Text(
-                  widget.unit,
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF6B7280),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                        icon: const Icon(Icons.remove_rounded, size: 16),
+                        color: const Color(0xFF1F2937),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      ),
+                      SizedBox(
+                        width: 24,
+                        child: Text(
+                          '$_quantity',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => setState(() => _quantity++),
+                        icon: const Icon(Icons.add_rounded, size: 16),
+                        color: const Color(0xFF1F2937),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -596,163 +643,104 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Quantity',
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF374151),
+          Expanded(
+            flex: 2,
+            child: SizedBox(
+              height: 52,
+              child: OutlinedButton(
+                onPressed: () {
+                  if (widget.isPriceetProduct && _selectedStoreIndex == null) {
+                    StatusModal.show(
+                      context,
+                      type: StatusModalType.error,
+                      title: 'No Store Selected',
+                      message: 'Please select a store price from the list first.',
+                      buttonText: 'Okay',
+                    );
+                  } else {
+                    final storeTitle = widget.isPriceetProduct
+                        ? _stores[_selectedStoreIndex!].storeName
+                        : widget.storeName;
+                    StatusModal.show(
+                      context,
+                      type: StatusModalType.success,
+                      title: 'Added to List',
+                      message: '$_quantity x ${widget.name} from $storeTitle has been added to your shopping list.',
+                      buttonText: 'Continue',
+                    );
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFE5E7EB), width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Text(
+                  'Add to List',
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF374151),
+                  ),
                 ),
               ),
-              Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 3,
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (widget.isPriceetProduct && _selectedStoreIndex == null) {
+                    StatusModal.show(
+                      context,
+                      type: StatusModalType.error,
+                      title: 'No Store Selected',
+                      message: 'Please select a store price from the list to add to cart.',
+                      buttonText: 'Okay',
+                    );
+                  } else {
+                    final storeTitle = widget.isPriceetProduct
+                        ? _stores[_selectedStoreIndex!].storeName
+                        : widget.storeName;
+                    StatusModal.show(
+                      context,
+                      type: StatusModalType.success,
+                      title: 'Added to Cart',
+                      message: '$_quantity x ${widget.name} from $storeTitle was added to your cart for ${_fmt(finalPrice * _quantity)}.',
+                      buttonText: 'Checkout',
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF002367),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    IconButton(
-                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-                      icon: const Icon(Icons.remove_rounded, size: 18),
-                      color: const Color(0xFF1F2937),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                    ),
-                    SizedBox(
-                      width: 24,
-                      child: Text(
-                        '$_quantity',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF111827),
-                        ),
+                    Text(
+                      'Add to Cart - ${_fmt(finalPrice * _quantity)}',
+                      style: const TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () => setState(() => _quantity++),
-                      icon: const Icon(Icons.add_rounded, size: 18),
-                      color: const Color(0xFF1F2937),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: SizedBox(
-                  height: 52,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      if (widget.isPriceetProduct && _selectedStoreIndex == null) {
-                        StatusModal.show(
-                          context,
-                          type: StatusModalType.error,
-                          title: 'No Store Selected',
-                          message: 'Please select a store price from the list first.',
-                          buttonText: 'Okay',
-                        );
-                      } else {
-                        final storeTitle = widget.isPriceetProduct
-                            ? _stores[_selectedStoreIndex!].storeName
-                            : widget.storeName;
-                        StatusModal.show(
-                          context,
-                          type: StatusModalType.success,
-                          title: 'Added to List',
-                          message: '$_quantity x ${widget.name} from $storeTitle has been added to your shopping list.',
-                          buttonText: 'Continue',
-                        );
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFE5E7EB), width: 2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: const Text(
-                      'Add to List',
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF374151),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 3,
-                child: SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (widget.isPriceetProduct && _selectedStoreIndex == null) {
-                        StatusModal.show(
-                          context,
-                          type: StatusModalType.error,
-                          title: 'No Store Selected',
-                          message: 'Please select a store price from the list to add to cart.',
-                          buttonText: 'Okay',
-                        );
-                      } else {
-                        final storeTitle = widget.isPriceetProduct
-                            ? _stores[_selectedStoreIndex!].storeName
-                            : widget.storeName;
-                        StatusModal.show(
-                          context,
-                          type: StatusModalType.success,
-                          title: 'Added to Cart',
-                          message: '$_quantity x ${widget.name} from $storeTitle was added to your cart for ${_fmt(finalPrice * _quantity)}.',
-                          buttonText: 'Checkout',
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF002367),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Add to Cart - ${_fmt(finalPrice * _quantity)}',
-                          style: const TextStyle(
-                            fontFamily: 'Outfit',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),

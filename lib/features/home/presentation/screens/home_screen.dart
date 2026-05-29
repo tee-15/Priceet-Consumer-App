@@ -5,6 +5,8 @@ import 'product_detail_screen.dart';
 import 'retailer_details_screen.dart';
 import 'voucher_detail_screen.dart';
 
+import 'lists_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -30,53 +32,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
-        child: Column(
+        child: IndexedStack(
+          index: _currentTab,
           children: [
-            // ── Top bar ────────────────────────────────────────────────
-            _TopBar(),
-            // ── Scrollable content ─────────────────────────────────────
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(top: 24, bottom: 24),
-                children: [
-                  _FadeInSlideTransition(
-                    delay: const Duration(milliseconds: 100),
-                    child: _Section(
-                      title: 'Products',
-                      onViewAll: () => Navigator.of(context).pushNamed('/all-products'),
-                      child: const _ProductsRow(),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _FadeInSlideTransition(
-                    delay: const Duration(milliseconds: 250),
-                    child: _Section(
-                      title: 'Cheapest Near You',
-                      onViewAll: () => Navigator.of(context).pushNamed('/cheapest-near-you'),
-                      child: const _CheapestList(),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _FadeInSlideTransition(
-                    delay: const Duration(milliseconds: 400),
-                    child: _Section(
-                      title: 'Nearby Retailers',
-                      onViewAll: () => Navigator.of(context).pushNamed('/nearby-retailers'),
-                      child: const _RetailersRow(),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _FadeInSlideTransition(
-                    delay: const Duration(milliseconds: 550),
-                    child: _Section(
-                      title: 'Vouchers',
-                      onViewAll: () => Navigator.of(context).pushNamed('/vouchers'),
-                      child: const _VouchersList(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const _HomeContent(),
+            const ListsScreen(),
+            const SizedBox.shrink(),
+            const SizedBox.shrink(),
+            const SizedBox.shrink(),
           ],
         ),
       ),
@@ -84,6 +47,63 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _currentTab,
         onTap: (i) => setState(() => _currentTab = i),
       ),
+    );
+  }
+}
+
+class _HomeContent extends StatelessWidget {
+  const _HomeContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // ── Top bar ────────────────────────────────────────────────
+        _TopBar(),
+        // ── Scrollable content ─────────────────────────────────────
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.only(top: 24, bottom: 24),
+            children: [
+              _FadeInSlideTransition(
+                delay: const Duration(milliseconds: 100),
+                child: _Section(
+                  title: 'Products',
+                  onViewAll: () => Navigator.of(context).pushNamed('/all-products'),
+                  child: const _ProductsRow(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _FadeInSlideTransition(
+                delay: const Duration(milliseconds: 250),
+                child: _Section(
+                  title: 'Cheapest Near You',
+                  onViewAll: () => Navigator.of(context).pushNamed('/cheapest-near-you'),
+                  child: const _CheapestList(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _FadeInSlideTransition(
+                delay: const Duration(milliseconds: 400),
+                child: _Section(
+                  title: 'Nearby Retailers',
+                  onViewAll: () => Navigator.of(context).pushNamed('/nearby-retailers'),
+                  child: const _RetailersRow(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _FadeInSlideTransition(
+                delay: const Duration(milliseconds: 550),
+                child: _Section(
+                  title: 'Vouchers',
+                  onViewAll: () => Navigator.of(context).pushNamed('/vouchers'),
+                  child: const _VouchersList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
