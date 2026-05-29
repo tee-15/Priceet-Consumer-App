@@ -55,7 +55,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   late final List<StorePrice> _stores;
   int? _selectedStoreIndex;
-
+  int _quantity = 1;
   @override
   void initState() {
     super.initState();
@@ -580,122 +580,179 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   Widget _buildBottomActions(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
+    final finalPrice = widget.isPriceetProduct
+        ? (_selectedStoreIndex != null ? _stores[_selectedStoreIndex!].price : widget.basePrice)
+        : widget.basePrice;
+
     return Container(
-      padding: EdgeInsets.fromLTRB(24, 16, 24, 16 + bottom),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + bottom),
       decoration: const BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: Color(0x0F000000),
             blurRadius: 20,
             offset: Offset(0, -4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            flex: 2,
-            child: SizedBox(
-              height: 56,
-              child: OutlinedButton(
-                onPressed: () {
-                  if (widget.isPriceetProduct && _selectedStoreIndex == null) {
-                    StatusModal.show(
-                      context,
-                      type: StatusModalType.error,
-                      title: 'No Store Selected',
-                      message: 'Please select a store price from the list first.',
-                      buttonText: 'Okay',
-                    );
-                  } else {
-                    final storeTitle = widget.isPriceetProduct
-                        ? _stores[_selectedStoreIndex!].storeName
-                        : widget.storeName;
-                    StatusModal.show(
-                      context,
-                      type: StatusModalType.success,
-                      title: 'Added to List',
-                      message: '${widget.name} from $storeTitle has been added to your shopping list.',
-                      buttonText: 'Continue',
-                    );
-                  }
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFE5E7EB), width: 2),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  'Add to List',
-                  style: TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF374151),
-                  ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Quantity',
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF374151),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 3,
-            child: SizedBox(
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (widget.isPriceetProduct && _selectedStoreIndex == null) {
-                    StatusModal.show(
-                      context,
-                      type: StatusModalType.error,
-                      title: 'No Store Selected',
-                      message: 'Please select a store price from the list to add to cart.',
-                      buttonText: 'Okay',
-                    );
-                  } else {
-                    final storeTitle = widget.isPriceetProduct
-                        ? _stores[_selectedStoreIndex!].storeName
-                        : widget.storeName;
-                    final finalPrice = widget.isPriceetProduct
-                        ? _stores[_selectedStoreIndex!].price
-                        : widget.basePrice;
-                    StatusModal.show(
-                      context,
-                      type: StatusModalType.success,
-                      title: 'Added to Cart',
-                      message: '${widget.name} from $storeTitle was added to your cart for ${_fmt(finalPrice)}.',
-                      buttonText: 'Checkout',
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF002367),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+              Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Add to Cart',
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                    IconButton(
+                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                      icon: const Icon(Icons.remove_rounded, size: 18),
+                      color: const Color(0xFF1F2937),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    ),
+                    SizedBox(
+                      width: 24,
+                      child: Text(
+                        '$_quantity',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF111827),
+                        ),
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.shopping_cart_checkout_rounded,
-                        color: Colors.white, size: 20),
+                    IconButton(
+                      onPressed: () => setState(() => _quantity++),
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      color: const Color(0xFF1F2937),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    ),
                   ],
                 ),
               ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: SizedBox(
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      if (widget.isPriceetProduct && _selectedStoreIndex == null) {
+                        StatusModal.show(
+                          context,
+                          type: StatusModalType.error,
+                          title: 'No Store Selected',
+                          message: 'Please select a store price from the list first.',
+                          buttonText: 'Okay',
+                        );
+                      } else {
+                        final storeTitle = widget.isPriceetProduct
+                            ? _stores[_selectedStoreIndex!].storeName
+                            : widget.storeName;
+                        StatusModal.show(
+                          context,
+                          type: StatusModalType.success,
+                          title: 'Added to List',
+                          message: '$_quantity x ${widget.name} from $storeTitle has been added to your shopping list.',
+                          buttonText: 'Continue',
+                        );
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFE5E7EB), width: 2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Add to List',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF374151),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 3,
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (widget.isPriceetProduct && _selectedStoreIndex == null) {
+                        StatusModal.show(
+                          context,
+                          type: StatusModalType.error,
+                          title: 'No Store Selected',
+                          message: 'Please select a store price from the list to add to cart.',
+                          buttonText: 'Okay',
+                        );
+                      } else {
+                        final storeTitle = widget.isPriceetProduct
+                            ? _stores[_selectedStoreIndex!].storeName
+                            : widget.storeName;
+                        StatusModal.show(
+                          context,
+                          type: StatusModalType.success,
+                          title: 'Added to Cart',
+                          message: '$_quantity x ${widget.name} from $storeTitle was added to your cart for ${_fmt(finalPrice * _quantity)}.',
+                          buttonText: 'Checkout',
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF002367),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Add to Cart - ${_fmt(finalPrice * _quantity)}',
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
