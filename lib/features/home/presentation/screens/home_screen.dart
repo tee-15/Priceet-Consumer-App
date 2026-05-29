@@ -34,14 +34,26 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.only(top: 24, bottom: 24),
-                children: const [
-                  _Section(title: 'Products', child: _ProductsRow()),
-                  SizedBox(height: 24),
-                  _Section(title: 'Cheapest Near You', child: _CheapestList()),
-                  SizedBox(height: 24),
-                  _Section(title: 'Nearby Retailers', child: _RetailersRow()),
-                  SizedBox(height: 24),
-                  _Section(title: 'Vouchers', child: _VouchersList()),
+                children: [
+                  _Section(
+                    title: 'Products',
+                    onViewAll: () => Navigator.of(context).pushNamed('/all-products'),
+                    child: const _ProductsRow(),
+                  ),
+                  const SizedBox(height: 24),
+                  _Section(
+                    title: 'Cheapest Near You',
+                    onViewAll: () => Navigator.of(context).pushNamed('/cheapest-near-you'),
+                    child: const _CheapestList(),
+                  ),
+                  const SizedBox(height: 24),
+                  _Section(
+                    title: 'Nearby Retailers',
+                    onViewAll: () => Navigator.of(context).pushNamed('/nearby-retailers'),
+                    child: const _RetailersRow(),
+                  ),
+                  const SizedBox(height: 24),
+                  const _Section(title: 'Vouchers', child: _VouchersList()),
                 ],
               ),
             ),
@@ -110,47 +122,52 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
               // Notification bell
-              Stack(
-                children: [
-                  Container(
-                    width: 44, height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFF3F4F6)),
-                    ),
-                    child: const Icon(Icons.notifications_outlined,
-                        color: Color(0xFF1F2937), size: 22),
-                  ),
-                  Positioned(
-                    top: 8, right: 8,
-                    child: Container(
-                      width: 10, height: 10,
+              GestureDetector(
+                onTap: () => Navigator.of(context).pushNamed('/notifications'),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 44, height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD90000),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFF3F4F6)),
+                      ),
+                      child: const Icon(Icons.notifications_outlined,
+                          color: Color(0xFF1F2937), size: 22),
+                    ),
+                    Positioned(
+                      top: 8, right: 8,
+                      child: Container(
+                        width: 10, height: 10,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD90000),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          // Search bar
-          Container(
-            height: 52,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFF3F4F6)),
-              boxShadow: const [
-                BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4)),
-              ],
-            ),
-            child: const Row(
-              children: [
+          // Search bar — taps navigate to search screen
+          GestureDetector(
+            onTap: () => Navigator.of(context).pushNamed('/search'),
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFF3F4F6)),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x08000000), blurRadius: 10, offset: Offset(0, 4)),
+                ],
+              ),
+              child: const Row(
+                children: [
                 SizedBox(width: 16),
                 Icon(Icons.search_rounded, color: Color(0xFF9CA3AF), size: 20),
                 SizedBox(width: 10),
@@ -161,6 +178,7 @@ class _TopBar extends StatelessWidget {
               ],
             ),
           ),
+          ), // GestureDetector
         ],
       ),
     );
@@ -170,9 +188,10 @@ class _TopBar extends StatelessWidget {
 // ── Section wrapper ────────────────────────────────────────────────────────────
 
 class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child});
+  const _Section({required this.title, required this.child, this.onViewAll});
   final String title;
   final Widget child;
+  final VoidCallback? onViewAll;
 
   @override
   Widget build(BuildContext context) {
@@ -188,10 +207,13 @@ class _Section extends StatelessWidget {
                 fontFamily: 'Outfit', fontSize: 16,
                 fontWeight: FontWeight.w700, color: Color(0xFF1F2937),
               )),
-              const Text('View All', style: TextStyle(
-                fontFamily: 'Outfit', fontSize: 13,
-                fontWeight: FontWeight.w700, color: Color(0xFF002367),
-              )),
+              GestureDetector(
+                onTap: onViewAll,
+                child: const Text('View All', style: TextStyle(
+                  fontFamily: 'Outfit', fontSize: 13,
+                  fontWeight: FontWeight.w700, color: Color(0xFF002367),
+                )),
+              ),
             ],
           ),
         ),
@@ -202,15 +224,41 @@ class _Section extends StatelessWidget {
   }
 }
 
+// ── Product ownership ──────────────────────────────────────────────────────────
+
+/// Who listed this product — drives the badge style on each card.
+enum _ProductOwner { priceet, retailer }
+
 // ── Products ───────────────────────────────────────────────────────────────────
 
 class _ProductsRow extends StatelessWidget {
   const _ProductsRow();
 
   static const _items = [
-    (name: 'Long Grain White Rice', unit: '5kg',      price: '₦3,100', store: 'Shoprite',     image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop', badge: true),
-    (name: 'Fry Vegetable Oil',     unit: '2 Litres', price: '₦1,850', store: 'Jumbo Market', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&h=400&fit=crop', badge: false),
-    (name: 'Whole Wheat Bread',     unit: '700g loaf',price: '₦620',   store: 'Pick n Pay',   image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop', badge: false),
+    (
+      name: 'Long Grain White Rice',
+      unit: '5kg',
+      price: '₦3,100',
+      store: 'Shoprite',
+      image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop',
+      owner: _ProductOwner.priceet,
+    ),
+    (
+      name: 'Fry Vegetable Oil',
+      unit: '2 Litres',
+      price: '₦1,850',
+      store: 'Jumbo Market',
+      image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&h=400&fit=crop',
+      owner: _ProductOwner.retailer,
+    ),
+    (
+      name: 'Whole Wheat Bread',
+      unit: '700g loaf',
+      price: '₦620',
+      store: 'Pick n Pay',
+      image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop',
+      owner: _ProductOwner.retailer,
+    ),
   ];
 
   @override
@@ -238,19 +286,33 @@ class _ProductsRow extends StatelessWidget {
                   height: 110,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      height: 110,
+                      color: const Color(0xFFF3F4F6),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 20, height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF002367),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                   errorBuilder: (context, error, stackTrace) => Container(
                     height: 110,
                     color: const Color(0xFFF3F4F6),
                     child: const Icon(Icons.shopping_bag_outlined, size: 40, color: Color(0xFF9CA3AF)),
                   ),
                 ),
-                if (p.badge)
-                  Positioned(top: 8, left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: const Color(0xFFD90000), borderRadius: BorderRadius.circular(10)),
-                      child: const Text('Priceet', style: TextStyle(fontFamily: 'Outfit', fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                    )),
+                // ── Ownership badge ──────────────────────────────────
+                Positioned(
+                  top: 8, left: 8,
+                  child: _OwnerBadge(owner: p.owner, storeName: p.store),
+                ),
               ]),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
@@ -267,6 +329,62 @@ class _ProductsRow extends StatelessWidget {
             ],
           ),
         )).toList(),
+      ),
+    );
+  }
+}
+
+// ── Owner badge ────────────────────────────────────────────────────────────────
+
+/// The small tag shown on the top-left of every product image.
+///
+/// • Priceet products  → red background, white "Priceet" text
+/// • Retailer products → white/translucent background, dark store name text
+class _OwnerBadge extends StatelessWidget {
+  const _OwnerBadge({required this.owner, required this.storeName});
+
+  final _ProductOwner owner;
+  final String storeName;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPriceet = owner == _ProductOwner.priceet;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isPriceet
+            ? const Color(0xFFD90000)
+            : Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(10),
+        border: isPriceet
+            ? null
+            : Border.all(color: const Color(0xFFE5E7EB), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isPriceet ? 0.18 : 0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isPriceet) ...[
+            const Icon(Icons.storefront_rounded, size: 10, color: Color(0xFF6B7280)),
+            const SizedBox(width: 3),
+          ],
+          Text(
+            isPriceet ? 'Priceet' : storeName,
+            style: TextStyle(
+              fontFamily: 'Outfit',
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: isPriceet ? Colors.white : const Color(0xFF374151),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -348,9 +466,24 @@ class _RetailersRow extends StatelessWidget {
   const _RetailersRow();
 
   static const _items = [
-    (name: 'FreshMart',    distance: '0.8 mi', rating: '4.8', color: Color(0xFF4CAF50)),
-    (name: 'City Grocers', distance: '1.2 mi', rating: '4.5', color: Color(0xFF2196F3)),
-    (name: 'MegaStore',    distance: '3.2 mi', rating: '4.2', color: Color(0xFFFF5722)),
+    (
+      name: 'FreshMart',
+      distance: '0.8 mi',
+      rating: '4.8',
+      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop',
+    ),
+    (
+      name: 'City Grocers',
+      distance: '1.2 mi',
+      rating: '4.5',
+      image: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&h=300&fit=crop',
+    ),
+    (
+      name: 'MegaStore',
+      distance: '3.2 mi',
+      rating: '4.2',
+      image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400&h=300&fit=crop',
+    ),
   ];
 
   @override
@@ -372,31 +505,85 @@ class _RetailersRow extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Stack(children: [
-              Container(
-                height: 128, color: r.color.withValues(alpha: 0.15),
-                alignment: Alignment.center,
-                child: Icon(Icons.store_rounded, size: 48, color: r.color),
+              // Store image
+              Image.network(
+                r.image,
+                height: 128,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return Container(
+                    height: 128,
+                    color: const Color(0xFFF3F4F6),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 18, height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF002367),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 128,
+                  color: const Color(0xFFF3F4F6),
+                  child: const Icon(Icons.store_rounded, size: 40, color: Color(0xFF9CA3AF)),
+                ),
               ),
-              Positioned(bottom: 6, left: 5,
+              // Gradient overlay
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.22),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Star rating badge
+              Positioned(
+                bottom: 6,
+                left: 6,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.star_rounded, size: 12, color: Color(0xFFFBBF24)),
                     const SizedBox(width: 4),
-                    Text(r.rating, style: const TextStyle(fontFamily: 'Outfit', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1F2937))),
+                    Text(r.rating, style: const TextStyle(
+                      fontFamily: 'Outfit', fontSize: 12,
+                      fontWeight: FontWeight.w700, color: Color(0xFF1F2937),
+                    )),
                   ]),
-                )),
+                ),
+              ),
             ]),
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(r.name, style: const TextStyle(fontFamily: 'Outfit', fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1F2937))),
+                Text(r.name, style: const TextStyle(
+                  fontFamily: 'Outfit', fontSize: 15,
+                  fontWeight: FontWeight.w700, color: Color(0xFF1F2937),
+                )),
                 const SizedBox(height: 4),
                 Row(children: [
                   const Icon(Icons.location_on_outlined, size: 13, color: Color(0xFF6B7280)),
                   const SizedBox(width: 3),
-                  Text(r.distance, style: const TextStyle(fontFamily: 'Outfit', fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF6B7280))),
+                  Text(r.distance, style: const TextStyle(
+                    fontFamily: 'Outfit', fontSize: 12,
+                    fontWeight: FontWeight.w500, color: Color(0xFF6B7280),
+                  )),
                 ]),
               ]),
             ),

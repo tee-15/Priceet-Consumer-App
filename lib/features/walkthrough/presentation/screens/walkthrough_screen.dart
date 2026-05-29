@@ -8,6 +8,12 @@ import '../widgets/price_comparison_illustration.dart';
 import '../widgets/qr_scan_illustration.dart';
 import '../widgets/savings_illustration.dart';
 
+// ── Shared transition helpers ──────────────────────────────────────────────────
+
+/// Duration used for all within-screen slide/fade transitions.
+const _kTransitionDuration = Duration(milliseconds: 500);
+const _kTransitionCurve = Curves.easeInOutCubic;
+
 // ── Slide data model ───────────────────────────────────────────────────────────
 
 class _WalkthroughSlide {
@@ -75,6 +81,7 @@ class WalkthroughScreen extends StatefulWidget {
 
 class _WalkthroughScreenState extends State<WalkthroughScreen> {
   int _currentPage = 0;
+  int _previousPage = 0;
   Timer? _timer;
 
   /// How long each slide stays visible before auto-advancing.
@@ -103,9 +110,14 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
     _timer?.cancel();
     _timer = Timer.periodic(_slideDuration, (_) {
       if (!mounted) return;
-      setState(() {
-        _currentPage = (_currentPage + 1) % _slides.length;
-      });
+      _goToPage((_currentPage + 1) % _slides.length);
+    });
+  }
+
+  void _goToPage(int index) {
+    setState(() {
+      _previousPage = _currentPage;
+      _currentPage = index;
     });
   }
 
@@ -114,7 +126,7 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
 
   void _skip() {
     _stopTimer();
-    // TODO: navigate to sign-in / home
+    Navigator.of(context).pushReplacementNamed('/signin');
   }
 
   void _signIn() {
@@ -130,6 +142,8 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
   @override
   Widget build(BuildContext context) {
     final slide = _slides[_currentPage];
+    // Forward = advancing, backward = going back
+    final isForward = _currentPage >= _previousPage;
 
     return Scaffold(
       backgroundColor: slide.gradientColors[0],
@@ -137,8 +151,8 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
         children: [
           // ── Animated background gradient ───────────────────────────────
           AnimatedContainer(
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeInOutCubic,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: const Alignment(-0.72, -0.70),
@@ -149,21 +163,18 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
             ),
           ),
 
-          // ── Illustration (cross-fades on slide change) ─────────────────
+          // ── Illustration (slides + fades on slide change) ──────────────
           Positioned(
             top: 112,
             bottom: 344,
             left: 0,
             right: 0,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              switchInCurve: Curves.easeIn,
-              switchOutCurve: Curves.easeOut,
-              child: KeyedSubtree(
-                // Unique key per page index forces a full widget remount,
-                // which is essential for StatefulWidget illustrations.
+            child: _SlideTransitionSwitcher(
+              pageKey: _currentPage,
+              isForward: isForward,
+              child: Center(
                 key: ValueKey<int>(_currentPage),
-                child: Center(child: slide.buildIllustration()),
+                child: slide.buildIllustration(),
               ),
             ),
           ),
@@ -186,12 +197,62 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
               totalPages: _slides.length,
               heading: slide.heading,
               body: slide.body,
+              isForward: isForward,
               onSignIn: _signIn,
               onGetStarted: _getStarted,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Directional slide+fade switcher ───────────────────────────────────────────
+
+/// Wraps [AnimatedSwitcher] with a horizontal slide+fade that respects
+/// the direction of travel (forward = slide left, backward = slide right).
+class _SlideTransitionSwitcher extends StatelessWidget {
+  const _SlideTransitionSwitcher({
+    required this.pageKey,
+    required this.isForward,
+    required this.child,
+  });
+
+  final int pageKey;
+  final bool isForward;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: _kTransitionDuration,
+      switchInCurve: _kTransitionCurve,
+      switchOutCurve: _kTransitionCurve,
+      transitionBuilder: (child, animation) {
+        // Determine if this is the incoming or outgoing child.
+        final isIncoming = child.key == ValueKey<int>(pageKey);
+        final direction = isForward ? 1.0 : -1.0;
+
+        final slideIn = Tween<Offset>(
+          begin: Offset(direction * 0.18, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: animation, curve: _kTransitionCurve));
+
+        final slideOut = Tween<Offset>(
+          begin: Offset(-direction * 0.18, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: animation, curve: _kTransitionCurve));
+
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: isIncoming ? slideIn : slideOut,
+            child: child,
+          ),
+        );
+      },
+      child: child,
     );
   }
 }
@@ -266,6 +327,7 @@ class _BottomSection extends StatelessWidget {
     required this.totalPages,
     required this.heading,
     required this.body,
+    required this.isForward,
     required this.onSignIn,
     required this.onGetStarted,
   });
@@ -274,12 +336,29 @@ class _BottomSection extends StatelessWidget {
   final int totalPages;
   final String heading;
   final String body;
+  final bool isForward;
   final VoidCallback onSignIn;
   final VoidCallback onGetStarted;
 
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final direction = isForward ? 1.0 : -1.0;
+
+    // Shared transition builder for text content
+    Widget textTransition(Widget child, Animation<double> animation) {
+      final slide = Tween<Offset>(
+        begin: Offset(direction * 0.12, 0),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(parent: animation, curve: _kTransitionCurve),
+      );
+      return FadeTransition(
+        opacity: animation,
+        child: SlideTransition(position: slide, child: child),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.fromLTRB(16, 24, 16, 24 + bottomPadding),
       child: Column(
@@ -289,9 +368,12 @@ class _BottomSection extends StatelessWidget {
           _PageIndicator(currentIndex: currentPage, total: totalPages),
           const SizedBox(height: 36),
 
-          // Heading cross-fade
+          // Heading — directional slide+fade
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
+            duration: _kTransitionDuration,
+            switchInCurve: _kTransitionCurve,
+            switchOutCurve: _kTransitionCurve,
+            transitionBuilder: textTransition,
             child: Align(
               key: ValueKey(heading),
               alignment: Alignment.centerLeft,
@@ -300,9 +382,12 @@ class _BottomSection extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Body cross-fade
+          // Body — directional slide+fade, slightly delayed feel
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
+            duration: _kTransitionDuration,
+            switchInCurve: _kTransitionCurve,
+            switchOutCurve: _kTransitionCurve,
+            transitionBuilder: textTransition,
             child: Align(
               key: ValueKey(body),
               alignment: Alignment.centerLeft,
