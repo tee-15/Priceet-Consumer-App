@@ -44,6 +44,7 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
           'isAvailable': true,
           'price': null,
           'store': null,
+          'marketAvg': '₦3,500',
           'needsStoreSelection': true,
           'quantity': 1,
         },
@@ -54,6 +55,7 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
           'isAvailable': true,
           'price': null,
           'store': null,
+          'marketAvg': '₦4,200',
           'needsStoreSelection': true,
           'quantity': 2,
         },
@@ -69,6 +71,7 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
           'isAvailable': true,
           'price': null,
           'store': null,
+          'marketAvg': '₦1,500',
           'needsStoreSelection': true,
           'quantity': 3,
         },
@@ -101,6 +104,57 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
         }
       }
     });
+  }
+
+  void _selectStoreForItem(String categoryTitle, String itemId, String storeName, String price) {
+    setState(() {
+      for (var category in _categories) {
+        if (category['title'] == categoryTitle) {
+          for (var item in category['items']) {
+            if (item['id'] == itemId) {
+              item['store'] = storeName;
+              item['price'] = price;
+              item['needsStoreSelection'] = false;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  void _applyStoreToAll(String storeName) {
+    setState(() {
+      for (var category in _categories) {
+        for (var item in category['items']) {
+          if (item['needsStoreSelection'] == true) {
+            item['store'] = storeName;
+            // Generate a mock price based on market avg or fallback
+            String baseStr = item['marketAvg'] ?? '₦3,000';
+            item['price'] = baseStr; // Just use market avg for the mock
+            item['needsStoreSelection'] = false;
+          }
+        }
+      }
+    });
+  }
+
+  void _showStoreSelectionSheet(String categoryTitle, Map<String, dynamic> item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _StoreSelectionSheet(
+        item: item,
+        onSelect: (store, price) {
+          _selectStoreForItem(categoryTitle, item['id'], store, price);
+          Navigator.pop(context);
+        },
+        onSelectForAll: (store) {
+          _applyStoreToAll(store);
+          Navigator.pop(context);
+        },
+      ),
+    );
   }
 
   @override
@@ -432,9 +486,7 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
                     // Price or Select Store button
                     if (item['needsStoreSelection'] == true)
                       GestureDetector(
-                        onTap: () {
-                          // Implement select store
-                        },
+                        onTap: () => _showStoreSelectionSheet(categoryTitle, item),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
