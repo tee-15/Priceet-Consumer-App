@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'confirm_payment_screen.dart';
 
 // ── Data ───────────────────────────────────────────────────────────────────────
 
@@ -164,11 +165,11 @@ class _BuyVoucherScreenState extends State<BuyVoucherScreen>
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: _buildAppBar(context),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Column(
           children: [
+            _buildAppBar(context),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
@@ -195,11 +196,13 @@ class _BuyVoucherScreenState extends State<BuyVoucherScreen>
               ),
             ),
             // ── Continue button (fixed bottom) ────────────────────
-            FadeTransition(
-              opacity: _buttonFade,
-              child: SlideTransition(
-                position: _buttonSlide,
-                child: _buildContinueButton(bottom),
+            ClipRect(
+              child: FadeTransition(
+                opacity: _buttonFade,
+                child: SlideTransition(
+                  position: _buttonSlide,
+                  child: _buildContinueButton(bottom),
+                ),
               ),
             ),
           ],
@@ -210,61 +213,54 @@ class _BuyVoucherScreenState extends State<BuyVoucherScreen>
 
   // ── App bar ───────────────────────────────────────────────────────────────
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(64),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            bottom: BorderSide(color: const Color(0xFFF3F4F6)),
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x06000000),
-              blurRadius: 20,
-              offset: Offset(0, 2),
-            ),
-          ],
+  Widget _buildAppBar(BuildContext context) {
+    final top = MediaQuery.of(context).padding.top;
+    return Container(
+      padding: EdgeInsets.only(top: top + 16, bottom: 16, left: 16, right: 16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFF3F4F6)),
         ),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFF3F4F6)),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 16,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Select Vouchers',
-                  style: TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF111827),
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 20,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFF3F4F6)),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 20,
+                color: Color(0xFF1F2937),
+              ),
             ),
           ),
-        ),
+          const SizedBox(width: 16),
+          const Text(
+            'Select Vouchers',
+            style: TextStyle(
+              fontFamily: 'Outfit',
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF111827),
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -362,30 +358,28 @@ class _BuyVoucherScreenState extends State<BuyVoucherScreen>
                     ),
                   ),
                   const SizedBox(width: 4),
-                  Flexible(
-                    child: IntrinsicWidth(
-                      child: TextField(
-                        controller: _amountController,
-                        focusNode: _focusNode,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.left,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        style: const TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 40,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF111827),
-                          letterSpacing: -1.0,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        onChanged: (v) => setState(() {}),
+                  Expanded(
+                    child: TextField(
+                      controller: _amountController,
+                      focusNode: _focusNode,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      style: const TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF111827),
+                        letterSpacing: -1.0,
                       ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onChanged: (v) => setState(() {}),
                     ),
                   ),
                 ],
@@ -426,7 +420,38 @@ class _BuyVoucherScreenState extends State<BuyVoucherScreen>
         child: ElevatedButton(
           onPressed: _faceValue > 0
               ? () {
-                  // TODO: proceed to payment
+                  final type = _voucherTypes[_selectedIndex];
+                  Navigator.of(context).push(
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondary) =>
+                          ConfirmPaymentScreen(
+                            args: PaymentArgs(
+                              voucherType: type.label,
+                              planLabel: type.label
+                                  .replaceAll('Voucher', 'Plan')
+                                  .trim(),
+                              faceValue: _faceValue,
+                              discount: type.discountPercent,
+                              totalToPay: _youPay,
+                              walletBalance: 1500000,
+                            ),
+                          ),
+                      transitionsBuilder:
+                          (context, animation, secondary, child) {
+                        final slide = Tween<Offset>(
+                          begin: const Offset(1, 0),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ));
+                        return SlideTransition(
+                            position: slide, child: child);
+                      },
+                      transitionDuration:
+                          const Duration(milliseconds: 380),
+                    ),
+                  );
                 }
               : null,
           style: ElevatedButton.styleFrom(
