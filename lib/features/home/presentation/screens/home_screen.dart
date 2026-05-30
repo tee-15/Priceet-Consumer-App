@@ -6,6 +6,7 @@ import 'retailer_details_screen.dart';
 import 'voucher_detail_screen.dart';
 
 import 'lists_screen.dart';
+import 'cart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const _HomeContent(),
             const ListsScreen(),
-            const SizedBox.shrink(),
+            const CartScreen(),
             const SizedBox.shrink(),
             const SizedBox.shrink(),
           ],
