@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../core/state/cart_manager.dart';
+import '../../../../core/widgets/status_modal.dart';
+import 'home_screen.dart';
 
 class SavedListDetailsScreen extends StatefulWidget {
   final String title;
@@ -270,7 +273,39 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
                     width: double.infinity,
                     height: 54,
                     child: ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        int addedCount = 0;
+                        for (var cat in _categories) {
+                          for (var item in cat['items']) {
+                            String priceStr = item['price'] ?? item['marketAvg'] ?? '₦0';
+                            priceStr = priceStr.replaceAll(RegExp(r'[^\d]'), '');
+                            double price = (int.tryParse(priceStr) ?? 0).toDouble();
+                            
+                            CartManager.instance.addItem(CartItem(
+                              id: '${item['id']}_${item['store'] ?? 'Auto'}',
+                              title: item['title'],
+                              price: price,
+                              image: item['image'],
+                              storeName: item['store'] ?? 'Priceet Auto-select',
+                              distance: '0.8 mi',
+                              quantity: item['quantity'] ?? 1,
+                            ));
+                            addedCount++;
+                          }
+                        }
+                        StatusModal.show(
+                          context,
+                          type: StatusModalType.success,
+                          title: 'List Added to Cart',
+                          message: '$addedCount items have been added to your cart.',
+                          buttonText: 'View Cart',
+                          onButtonPressed: () {
+                            Navigator.of(context).pop(); // pop modal
+                            homeTabController.value = 2; // select cart tab
+                            Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+                          },
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF002367),
                         foregroundColor: Colors.white,

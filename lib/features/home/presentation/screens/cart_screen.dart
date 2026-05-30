@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/state/cart_manager.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -89,25 +90,219 @@ class _CartScreenState extends State<CartScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  const SizedBox(height: 24),
-                  _buildIllustration(),
-                  const SizedBox(height: 32),
-                  _buildEmptyText(),
-                  const SizedBox(height: 32),
-                  _buildCTAButtons(context),
-                  const SizedBox(height: 32),
-                  _buildSmartSavingsTip(),
-                  const SizedBox(height: 40),
-                ],
+      body: AnimatedBuilder(
+        animation: CartManager.instance,
+        builder: (context, _) {
+          final isCartEmpty = CartManager.instance.isCartEmpty;
+          return Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: isCartEmpty ? _buildEmptyCart() : _buildFilledCart(),
               ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyCart() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          const SizedBox(height: 24),
+          _buildIllustration(),
+          const SizedBox(height: 32),
+          _buildEmptyText(),
+          const SizedBox(height: 32),
+          _buildCTAButtons(context),
+          const SizedBox(height: 32),
+          _buildSmartSavingsTip(),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilledCart() {
+    final stores = CartManager.instance.groupedByStore();
+    return Stack(
+      children: [
+        ListView(
+          padding: const EdgeInsets.only(top: 24, bottom: 200),
+          children: [
+            for (var store in stores) _buildStoreCard(store),
+          ],
+        ),
+        // Bottom Checkout Bar
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'Total Estimate',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF9CA3AF),
+                      ),
+                    ),
+                    Text(
+                      '₦${CartManager.instance.totalPrice.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF111827),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _PressableButton(
+                  onTap: () => Navigator.of(context).pushNamed('/confirm-payment'),
+                  child: Container(
+                    width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF002367),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF002367).withValues(alpha: 0.2),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Proceed to Checkout',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStoreCard(Map<String, dynamic> store) {
+    final List<CartItem> items = store['items'];
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Store Header
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFF3F4F6)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.store_mall_directory_outlined,
+                    color: AppColors.brandBlue,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    store['storeName'],
+                    style: const TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 14, color: AppColors.brandBlue),
+                      const SizedBox(width: 4),
+                      Text(
+                        store['distance'],
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFF3F4F6)),
+          // Items
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Column(
+              children: [
+                for (int i = 0; i < items.length; i++)
+                  _buildCartItem(items[i], i != items.length - 1),
+              ],
             ),
           ),
         ],
@@ -115,7 +310,144 @@ class _CartScreenState extends State<CartScreen>
     );
   }
 
+  Widget _buildCartItem(CartItem item, bool showDivider) {
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Item Image
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(16),
+                image: DecorationImage(
+                  image: NetworkImage(item.image),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.title,
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF111827),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () {
+                          CartManager.instance.removeItem(item.id, item.storeName);
+                        },
+                        child: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: Color(0xFFD1D5DB),
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '₦${item.price.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF111827),
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      _buildQuantitySelector(item),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (showDivider)
+          const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Divider(height: 1, color: Color(0xFFF3F4F6)),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildQuantitySelector(CartItem item) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildQtyButton(Icons.remove, () {
+            CartManager.instance.updateQuantity(item.id, item.storeName, -1);
+          }),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Text(
+              '${item.quantity}',
+              style: const TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF111827),
+              ),
+            ),
+          ),
+          _buildQtyButton(Icons.add, () {
+            CartManager.instance.updateQuantity(item.id, item.storeName, 1);
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQtyButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Icon(
+          icon,
+          size: 16,
+          color: const Color(0xFF6B7280),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader() {
+    final isCartEmpty = CartManager.instance.isCartEmpty;
+    final totalItemsCount = CartManager.instance.totalItems;
+
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 12,
@@ -141,18 +473,18 @@ class _CartScreenState extends State<CartScreen>
           ),
           const Spacer(),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
+              color: isCartEmpty ? const Color(0xFFF3F4F6) : const Color(0xFFEFF4FF),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              '0 items',
+            child: Text(
+              '$totalItemsCount items',
               style: TextStyle(
                 fontFamily: 'Outfit',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF6B7280),
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isCartEmpty ? const Color(0xFF6B7280) : AppColors.brandBlue,
               ),
             ),
           ),
@@ -172,37 +504,33 @@ class _CartScreenState extends State<CartScreen>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Outer glow ring
               Container(
                 width: 220,
                 height: 220,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFEFF4FF),
+                  color: Color(0xFFEFF4FF),
                 ),
               ),
-              // Inner circle
               Container(
                 width: 160,
                 height: 160,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFD9E5FF),
+                  color: Color(0xFFD9E5FF),
                 ),
               ),
-              // Cart icon + decorations
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.shopping_cart_outlined,
                         size: 72,
                         color: AppColors.brandBlue,
                       ),
-                      // Empty badge
                       Positioned(
                         top: -4,
                         right: -4,
@@ -229,13 +557,11 @@ class _CartScreenState extends State<CartScreen>
                   ),
                 ],
               ),
-              // Floating price tag — top right
               Positioned(
                 top: 28,
                 right: 16,
                 child: _floatingBadge('₦2,400', const Color(0xFF00BC7D), Icons.local_offer_rounded),
               ),
-              // Floating tag — bottom left
               Positioned(
                 bottom: 28,
                 left: 10,
@@ -330,7 +656,6 @@ class _CartScreenState extends State<CartScreen>
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              // Primary CTA
               _PressableButton(
                 onTap: () => Navigator.of(context).pushNamed('/all-products'),
                 child: Container(
@@ -368,7 +693,6 @@ class _CartScreenState extends State<CartScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              // Secondary CTA
               _PressableButton(
                 onTap: () => Navigator.of(context).pushNamed('/cheapest-near-you'),
                 child: Container(
@@ -382,9 +706,9 @@ class _CartScreenState extends State<CartScreen>
                   alignment: Alignment.center,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: const [
                       Icon(Icons.location_on_outlined, color: AppColors.brandBlue, size: 20),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10),
                       Text(
                         'Cheapest Near You',
                         style: TextStyle(
@@ -433,7 +757,6 @@ class _CartScreenState extends State<CartScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon
                 Container(
                   width: 44,
                   height: 44,
@@ -474,7 +797,6 @@ class _CartScreenState extends State<CartScreen>
                         ),
                       ),
                       const SizedBox(height: 12),
-                      // Stat pills
                       Row(
                         children: [
                           _statPill('Up to 18% saved', const Color(0xFF00BC7D)),
@@ -513,8 +835,6 @@ class _CartScreenState extends State<CartScreen>
     );
   }
 }
-
-// ── Pressable Button with scale effect ──────────────────────────────────────
 
 class _PressableButton extends StatefulWidget {
   const _PressableButton({required this.child, required this.onTap});

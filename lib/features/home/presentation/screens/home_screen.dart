@@ -7,6 +7,9 @@ import 'voucher_detail_screen.dart';
 
 import 'lists_screen.dart';
 import 'cart_screen.dart';
+import '../../../../core/state/cart_manager.dart';
+
+final ValueNotifier<int> homeTabController = ValueNotifier<int>(0);
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentTab = 0;
 
   @override
   void initState() {
@@ -30,24 +32,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
-      body: SafeArea(
-        child: IndexedStack(
-          index: _currentTab,
-          children: [
-            const _HomeContent(),
-            const ListsScreen(),
-            const CartScreen(),
-            const SizedBox.shrink(),
-            const SizedBox.shrink(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _BottomNav(
-        currentIndex: _currentTab,
-        onTap: (i) => setState(() => _currentTab = i),
-      ),
+    return ValueListenableBuilder<int>(
+      valueListenable: homeTabController,
+      builder: (context, currentTab, child) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFFAFAFA),
+          body: SafeArea(
+            child: IndexedStack(
+              index: currentTab,
+              children: [
+                const _HomeContent(),
+                const ListsScreen(),
+                const CartScreen(),
+                const SizedBox.shrink(),
+                const SizedBox.shrink(),
+              ],
+            ),
+          ),
+          bottomNavigationBar: _BottomNav(
+            currentIndex: currentTab,
+            onTap: (i) {
+              homeTabController.value = i;
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -1011,11 +1020,55 @@ class _BottomNav extends StatelessWidget {
                             duration: const Duration(milliseconds: 250),
                             scale: isActive ? 1.16 : 1.0,
                             curve: Curves.easeOutBack,
-                            child: Icon(
-                              _items[i].icon,
-                              size: 22,
-                              color: isActive ? AppColors.brandBlue : const Color(0xFF9CA3AF),
-                            ),
+                            child: i == 2 // 2 is Cart index
+                                ? AnimatedBuilder(
+                                    animation: CartManager.instance,
+                                    builder: (context, _) {
+                                      final count = CartManager.instance.totalItems;
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          Icon(
+                                            _items[i].icon,
+                                            size: 22,
+                                            color: isActive ? AppColors.brandBlue : const Color(0xFF9CA3AF),
+                                          ),
+                                          if (count > 0)
+                                            Positioned(
+                                              top: -4,
+                                              right: -6,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(3),
+                                                decoration: const BoxDecoration(
+                                                  color: AppColors.brandRed,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                constraints: const BoxConstraints(
+                                                  minWidth: 14,
+                                                  minHeight: 14,
+                                                ),
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  '$count',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 8,
+                                                    fontWeight: FontWeight.w800,
+                                                    fontFamily: 'Outfit',
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      );
+                                    },
+                                  )
+                                : Icon(
+                                    _items[i].icon,
+                                    size: 22,
+                                    color: isActive ? AppColors.brandBlue : const Color(0xFF9CA3AF),
+                                  ),
                           ),
                           const SizedBox(height: 4),
                           Text(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/widgets/status_modal.dart';
+import '../../../../core/state/cart_manager.dart';
+import 'home_screen.dart';
 
 // ── Data models ──────────────────────────────────────────────────────────────
 
@@ -709,12 +711,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     final storeTitle = widget.isPriceetProduct
                         ? _stores[_selectedStoreIndex!].storeName
                         : widget.storeName;
+                    final distance = widget.isPriceetProduct
+                        ? _stores[_selectedStoreIndex!].distance
+                        : '0.8 mi'; // default distance for non-Priceet items
+
+                    CartManager.instance.addItem(
+                      CartItem(
+                        id: '${widget.name}_$storeTitle', // simple unique ID based on name and store
+                        title: widget.name,
+                        price: finalPrice,
+                        image: widget.image,
+                        storeName: storeTitle,
+                        distance: distance,
+                        quantity: _quantity,
+                      ),
+                    );
+
                     StatusModal.show(
                       context,
                       type: StatusModalType.success,
                       title: 'Added to Cart',
                       message: '$_quantity x ${widget.name} from $storeTitle was added to your cart for ${_fmt(finalPrice * _quantity)}.',
-                      buttonText: 'Checkout',
+                      buttonText: 'View Cart',
+                      onButtonPressed: () {
+                        // Pop modal
+                        Navigator.of(context).pop();
+                        // Navigate to Cart tab
+                        homeTabController.value = 2;
+                        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+                      },
                     );
                   }
                 },
