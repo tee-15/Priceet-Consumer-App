@@ -17,21 +17,17 @@ class _ListsScreenState extends State<ListsScreen> {
   final List<Map<String, dynamic>> _activeLists = [
     {
       'title': 'Weekly Family Groceries',
-      'itemCount': 4,
+      'itemCount': 12,
       'estimatedTotal': 45000,
       'hasNotification': true,
+      'isManual': false,
     },
     {
       'title': 'Nigerian Breakfast',
       'itemCount': 4,
       'estimatedTotal': 15000,
       'hasNotification': false,
-    },
-    {
-      'title': 'Nigerian Breakfast',
-      'itemCount': 4,
-      'estimatedTotal': 15000,
-      'hasNotification': false,
+      'isManual': false,
     },
   ];
 
@@ -45,7 +41,8 @@ class _ListsScreenState extends State<ListsScreen> {
           'title': result,
           'itemCount': 4, // Mock values for the newly generated list
           'estimatedTotal': 2200,
-          'hasNotification': false,
+          'hasNotification': true,
+          'isManual': false,
         });
       });
     }
@@ -61,6 +58,7 @@ class _ListsScreenState extends State<ListsScreen> {
         'itemCount': 0,
         'estimatedTotal': price,
         'hasNotification': false,
+        'isManual': true,
       });
       _showCreateForm = false;
       _nameController.clear();
@@ -358,7 +356,10 @@ class _ListsScreenState extends State<ListsScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => SavedListDetailsScreen(title: list['title'])),
+                        MaterialPageRoute(builder: (context) => SavedListDetailsScreen(
+                          title: list['title'],
+                          isManual: list['isManual'] ?? false,
+                        )),
                       );
                     },
                     child: _buildListCard(list),
@@ -378,6 +379,7 @@ class _ListsScreenState extends State<ListsScreen> {
     final String title = (list['title'] as String?) ?? 'Untitled List';
     final int itemCount = (list['itemCount'] as num?)?.toInt() ?? 0;
     final num estimatedTotal = (list['estimatedTotal'] as num?) ?? 0;
+    final bool isManual = (list['isManual'] as bool?) ?? false;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -451,16 +453,58 @@ class _ListsScreenState extends State<ListsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF111827),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: const TextStyle(
+                                fontFamily: 'Outfit',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF111827),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isManual)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              margin: const EdgeInsets.only(left: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE5E7EB),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'Manual',
+                                style: TextStyle(
+                                  fontFamily: 'Outfit',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF4B5563),
+                                ),
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              margin: const EdgeInsets.only(left: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEEF2FF),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'AI Generated',
+                                style: TextStyle(
+                                  fontFamily: 'Outfit',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF002367),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(

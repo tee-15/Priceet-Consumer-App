@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 
 class SavedListDetailsScreen extends StatefulWidget {
   final String title;
-  const SavedListDetailsScreen({super.key, required this.title});
+  final bool isManual;
+  const SavedListDetailsScreen({
+    super.key,
+    required this.title,
+    this.isManual = false,
+  });
 
   @override
   State<SavedListDetailsScreen> createState() => _SavedListDetailsScreenState();
@@ -11,7 +16,15 @@ class SavedListDetailsScreen extends StatefulWidget {
 class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
   final TextEditingController _searchController = TextEditingController(text: 'Weekly food list');
 
-  final List<Map<String, dynamic>> _categories = [
+  late List<Map<String, dynamic>> _categories;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isManual) {
+      _categories = [];
+    } else {
+      _categories = [
     {
       'title': 'Grains',
       'items': [
@@ -71,6 +84,38 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
       ]
     },
   ];
+    }
+  }
+
+  int get _totalItems {
+    return _categories.fold(0, (sum, cat) => sum + (cat['items'] as List).length);
+  }
+
+  int get _totalPrice {
+    return _categories.fold(0, (sum, cat) {
+      final items = cat['items'] as List;
+      return sum + items.fold(0, (itemSum, item) {
+        String priceStr = item['price'] ?? item['marketAvg'] ?? '₦0';
+        priceStr = priceStr.replaceAll(RegExp(r'[^\d]'), '');
+        int price = int.tryParse(priceStr) ?? 0;
+        int qty = (item['quantity'] as num?)?.toInt() ?? 1;
+        return itemSum + (price * qty);
+      });
+    });
+  }
+
+  String _fmt(int amount) {
+    if (amount == 0) return '₦0';
+    final str = amount.toString();
+    final result = StringBuffer();
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      if (count > 0 && count % 3 == 0) result.write(',');
+      result.write(str[i]);
+      count++;
+    }
+    return '₦${result.toString().split('').reversed.join()}';
+  }
 
   void _updateQuantity(String categoryTitle, String itemId, int delta) {
     setState(() {
@@ -136,7 +181,26 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const _AddItemSheet(),
+      builder: (context) => _AddItemSheet(
+        onAddItem: (categoryTitle, newItem) {
+          setState(() {
+            bool categoryExists = false;
+            for (var category in _categories) {
+              if (category['title'] == categoryTitle) {
+                (category['items'] as List).add(newItem);
+                categoryExists = true;
+                break;
+              }
+            }
+            if (!categoryExists) {
+              _categories.add({
+                'title': categoryTitle,
+                'items': [newItem],
+              });
+            }
+          });
+        },
+      ),
     );
   }
 
@@ -216,9 +280,9 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
                         ),
                       ),
                       icon: const Icon(Icons.shopping_cart_outlined, size: 20),
-                      label: const Text(
-                        'Add List to Cart (₦2,200)',
-                        style: TextStyle(
+                      label: Text(
+                        'Add List to Cart (${_fmt(_totalPrice)})',
+                        style: const TextStyle(
                           fontFamily: 'Outfit',
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -244,12 +308,6 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
         onPressed: () => Navigator.of(context).pop(),
         icon: const Icon(Icons.arrow_back, color: Color(0xFF002367)),
       ),
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.search, color: Color(0xFF002367)),
-        ),
-      ],
     );
   }
 
@@ -267,18 +325,18 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          '4 items • Est. Total',
-          style: TextStyle(
+        Text(
+          '$_totalItems items • Est. Total',
+          style: const TextStyle(
             fontFamily: 'Outfit',
             fontSize: 14,
             color: Color(0xFF6B7280),
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          '₦2,200',
-          style: TextStyle(
+        Text(
+          _fmt(_totalPrice),
+          style: const TextStyle(
             fontFamily: 'Outfit',
             fontSize: 28,
             fontWeight: FontWeight.w800,
@@ -815,7 +873,9 @@ class _StoreSelectionSheet extends StatelessWidget {
 }
 
 class _AddItemSheet extends StatelessWidget {
-  const _AddItemSheet();
+  final Function(String category, Map<String, dynamic> item) onAddItem;
+
+  const _AddItemSheet({required this.onAddItem});
 
   @override
   Widget build(BuildContext context) {
@@ -899,24 +959,28 @@ class _AddItemSheet extends StatelessWidget {
             child: ListView(
               children: [
                 _buildSearchItem(
+                  context: context,
                   title: 'Whole Wheat Bread',
                   category: 'Grains',
                   image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150',
                 ),
                 const SizedBox(height: 12),
                 _buildSearchItem(
+                  context: context,
                   title: 'Free Range Eggs (Dozen)',
                   category: 'Proteins',
                   image: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=150',
                 ),
                 const SizedBox(height: 12),
                 _buildSearchItem(
+                  context: context,
                   title: 'Fresh Tomatoes',
                   category: 'Vegetables',
                   image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=150',
                 ),
                 const SizedBox(height: 12),
                 _buildSearchItem(
+                  context: context,
                   title: 'Chicken Breast (1kg)',
                   category: 'Proteins',
                   image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=150',
@@ -930,63 +994,86 @@ class _AddItemSheet extends StatelessWidget {
   }
 
   Widget _buildSearchItem({
+    required BuildContext context,
     required String title,
     required String category,
     required String image,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFF3F4F6)),
       ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              image,
-              width: 56,
-              height: 56,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            onAddItem(category, {
+              'id': DateTime.now().millisecondsSinceEpoch.toString(),
+              'title': title,
+              'image': image,
+              'isAvailable': true,
+              'price': null,
+              'store': null,
+              'marketAvg': '₦2,000', // mock value
+              'needsStoreSelection': true,
+              'quantity': 1,
+            });
+            Navigator.pop(context); // close the sheet after adding
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF002367),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    image,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  category,
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 13,
-                    color: Color(0xFF6B7280),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF002367),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        category,
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 13,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF002367),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.add, color: Colors.white, size: 20),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: const BoxDecoration(
-              color: Color(0xFF002367),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add, color: Colors.white, size: 20),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -271,12 +271,6 @@ class _GeneratedListScreenState extends State<GeneratedListScreen> {
           ),
         ],
       ),
-      actions: [
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.more_horiz, color: Color(0xFF9CA3AF)),
-        ),
-      ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
         child: Container(color: const Color(0xFFE5E7EB), height: 1),
