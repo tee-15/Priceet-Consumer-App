@@ -11,14 +11,6 @@ class SavedListDetailsScreen extends StatefulWidget {
 class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
   final TextEditingController _searchController = TextEditingController(text: 'Weekly food list');
 
-  final List<String> _suggestions = [
-    'Weekly food list',
-    'Baby food items',
-    'Party groceries',
-    'Healthy breakfast',
-    'Pasta dinner',
-  ];
-
   final List<Map<String, dynamic>> _categories = [
     {
       'title': 'Grains',
@@ -139,6 +131,15 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
     });
   }
 
+  void _showAddItemSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _AddItemSheet(),
+    );
+  }
+
   void _showStoreSelectionSheet(String categoryTitle, Map<String, dynamic> item) {
     showModalBottomSheet(
       context: context,
@@ -197,7 +198,7 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      onPressed: () {},
+                      onPressed: _showAddItemSheet,
                       icon: const Icon(Icons.add, color: Colors.white),
                     ),
                   ),
@@ -812,3 +813,182 @@ class _StoreSelectionSheet extends StatelessWidget {
     );
   }
 }
+
+class _AddItemSheet extends StatelessWidget {
+  const _AddItemSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5E7EB),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Title and close
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Add Item',
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF002367),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF3F4F6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, size: 20, color: Color(0xFF1F2937)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Search Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.search, color: Color(0xFF9CA3AF), size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Search products...',
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 15,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // List of items
+          Expanded(
+            child: ListView(
+              children: [
+                _buildSearchItem(
+                  title: 'Whole Wheat Bread',
+                  category: 'Grains',
+                  image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150',
+                ),
+                const SizedBox(height: 12),
+                _buildSearchItem(
+                  title: 'Free Range Eggs (Dozen)',
+                  category: 'Proteins',
+                  image: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=150',
+                ),
+                const SizedBox(height: 12),
+                _buildSearchItem(
+                  title: 'Fresh Tomatoes',
+                  category: 'Vegetables',
+                  image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=150',
+                ),
+                const SizedBox(height: 12),
+                _buildSearchItem(
+                  title: 'Chicken Breast (1kg)',
+                  category: 'Proteins',
+                  image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=150',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchItem({
+    required String title,
+    required String category,
+    required String image,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF3F4F6)),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              image,
+              width: 56,
+              height: 56,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF002367),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  category,
+                  style: const TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 13,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(
+              color: Color(0xFF002367),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.add, color: Colors.white, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

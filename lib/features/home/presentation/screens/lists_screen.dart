@@ -395,9 +395,7 @@ class _ListsScreenState extends State<ListsScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            // Navigate to list details
-          },
+          onTap: null, // Let the outer GestureDetector handle the tap
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
