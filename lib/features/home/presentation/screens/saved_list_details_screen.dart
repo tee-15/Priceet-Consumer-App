@@ -302,7 +302,7 @@ class _SavedListDetailsScreenState extends State<SavedListDetailsScreen> {
                           onButtonPressed: () {
                             Navigator.of(context).pop(); // pop modal
                             homeTabController.value = 2; // select cart tab
-                            Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+                            Navigator.of(context).popUntil((route) => route.settings.name == '/home');
                           },
                         );
                       },

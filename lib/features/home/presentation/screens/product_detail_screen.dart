@@ -738,7 +738,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         Navigator.of(context).pop();
                         // Navigate to Cart tab
                         homeTabController.value = 2;
-                        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+                        Navigator.of(context).popUntil((route) => route.settings.name == '/home');
                       },
                     );
                   }

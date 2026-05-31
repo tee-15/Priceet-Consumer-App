@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/state/cart_manager.dart';
+import 'checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -183,8 +184,14 @@ class _CartScreenState extends State<CartScreen>
                   ],
                 ),
                 const SizedBox(height: 24),
-                _PressableButton(
-                  onTap: () => Navigator.of(context).pushNamed('/confirm-payment'),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const CheckoutScreen(),
+                      ),
+                    );
+                  },
                   child: Container(
                     width: double.infinity,
                     height: 56,
